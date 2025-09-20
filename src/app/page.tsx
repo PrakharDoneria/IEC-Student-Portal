@@ -4,6 +4,8 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Class, Student } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home({
   searchParams,
 }: {
@@ -32,7 +34,7 @@ export default async function Home({
 }
 
 async function RosterDataWrapper({ selectedClassId, classes }: { selectedClassId: string; classes: Class[] }) {
-  const students = selectedClassId ? await getStudentsByClass(selectedClassId) : [];
+  const students = await getStudentsByClass(selectedClassId);
   return <StudentRoster classes={classes} students={students} selectedClassId={selectedClassId} />;
 }
 

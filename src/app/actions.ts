@@ -34,10 +34,14 @@ export async function getStudentAttendanceSummary(rollNumber: string): Promise<{
     const summaryData = await getSummary(rollNumber);
     const detailsData = await getStudentAttendanceDetails(rollNumber);
 
-    // The summary endpoint doesn't return records, so we merge them from the details endpoint.
+    if (!summaryData) {
+        return { success: false, error: 'Could not fetch attendance summary.' };
+    }
+
+    // The summary endpoint doesn't return records, so we merge them from the details endpoint if available.
     const combinedData: StudentAttendanceSummary = {
         ...summaryData,
-        attendanceRecords: detailsData.attendanceRecords
+        attendanceRecords: detailsData?.attendanceRecords ?? []
     };
 
     return { success: true, data: combinedData };
@@ -51,9 +55,6 @@ export async function getStudentAttendanceSummary(rollNumber: string): Promise<{
 export async function fetchStudentsForClass(classId: string): Promise<{ success: true; data: Student[] } | { success: false; error: string }> {
   try {
     const students = await getStudentsByClass(classId);
-    if (students.length === 0) {
-      return { success: false, error: 'No students found for this class.' };
-    }
     return { success: true, data: students };
   } catch (error) {
     console.error('Fetch Students Error:', error);

@@ -28,13 +28,21 @@ export const getStudentsByClass = async (classId: string): Promise<Student[]> =>
   try {
     const res = await fetch(`${API_BASE_URL}/students/${classId}`);
     if (!res.ok) {
-      throw new Error(`Failed to fetch students for class ${classId}`);
+       // If the API returns a 404 or other error, we'll log it and return an empty array.
+       console.error(`Failed to fetch students for class ${classId}. Status: ${res.status}`);
+       return [];
     }
-    const studentsData: Omit<Student, 'avatarUrl'>[] = await res.json();
+    const studentsData: Omit<Student, 'avatarUrl' | '_id'>[] = await res.json();
     
+    if (!Array.isArray(studentsData)) {
+      console.error("API did not return an array for students of class", classId);
+      return [];
+    }
+
     // Add placeholder avatar URLs for the UI
     const studentsWithAvatars: Student[] = studentsData.map((student, index) => ({
       ...student,
+      _id: student.Roll_Number, // Use Roll_Number as a unique ID for React keys
       avatarUrl: PlaceHolderImages[index % PlaceHolderImages.length].imageUrl,
     }));
 
@@ -46,22 +54,34 @@ export const getStudentsByClass = async (classId: string): Promise<Student[]> =>
 };
 
 
-export const getStudentAttendanceSummary = async (rollNumber: string): Promise<StudentAttendanceSummary> => {
+export const getStudentAttendanceSummary = async (rollNumber: string): Promise<StudentAttendanceSummary | null> => {
   if (!rollNumber) throw new Error('Roll number is required.');
-  const res = await fetch(`${API_BASE_URL}/students/${rollNumber}/attendance-summary`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch student attendance summary.');
+  try {
+    const res = await fetch(`${API_BASE_URL}/students/${rollNumber}/attendance-summary`);
+    if (!res.ok) {
+      console.error(`Failed to fetch attendance summary for roll number ${rollNumber}. Status: ${res.status}`);
+      return null;
+    }
+    return res.json();
+  } catch (error) {
+    console.error(`Error fetching attendance summary for ${rollNumber}:`, error);
+    return null;
   }
-  return res.json();
 };
 
-export const getStudentAttendanceDetails = async (rollNumber: string): Promise<StudentAttendanceDetails> => {
+export const getStudentAttendanceDetails = async (rollNumber: string): Promise<StudentAttendanceDetails | null> => {
   if (!rollNumber) throw new Error('Roll number is required.');
-  const res = await fetch(`${API_BASE_URL}/students/${rollNumber}/attendance`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch student attendance details.');
+  try {
+    const res = await fetch(`${API_BASE_URL}/students/${rollNumber}/attendance`);
+    if (!res.ok) {
+      console.error(`Failed to fetch attendance details for roll number ${rollNumber}. Status: ${res.status}`);
+      return null;
+    }
+    return res.json();
+  } catch (error) {
+    console.error(`Error fetching attendance details for ${rollNumber}:`, error);
+    return null;
   }
-  return res.json();
 };
 
 export const markAttendance = async (payload: {
