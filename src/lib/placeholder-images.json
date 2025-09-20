@@ -1,3 +1,95 @@
+
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "student-1",
+      "description": "Avatar for student 1",
+      "imageUrl": "https://picsum.photos/seed/1/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-2",
+      "description": "Avatar for student 2",
+      "imageUrl": "https://picsum.photos/seed/2/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-3",
+      "description": "Avatar for student 3",
+      "imageUrl": "https://picsum.photos/seed/3/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-4",
+      "description": "Avatar for student 4",
+      "imageUrl": "https://picsum.photos/seed/4/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-5",
+      "description": "Avatar for student 5",
+      "imageUrl": "https://picsum.photos/seed/5/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-6",
+      "description": "Avatar for student 6",
+      "imageUrl": "https://picsum.photos/seed/6/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-7",
+      "description": "Avatar for student 7",
+      "imageUrl": "https://picsum.photos/seed/7/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-8",
+      "description": "Avatar for student 8",
+      "imageUrl": "https://picsum.photos/seed/8/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-9",
+      "description": "Avatar for student 9",
+      "imageUrl": "https://picsum.photos/seed/9/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-10",
+      "description": "Avatar for student 10",
+      "imageUrl": "https://picsum.photos/seed/10/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-11",
+      "description": "Avatar for student 11",
+      "imageUrl": "https://picsum.photos/seed/11/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-12",
+      "description": "Avatar for student 12",
+      "imageUrl": "https://picsum.photos/seed/12/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-13",
+      "description": "Avatar for student 13",
+      "imageUrl": "https://picsum.photos/seed/13/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-14",
+      "description": "Avatar for student 14",
+      "imageUrl": "https://picsum.photos/seed/14/100/100",
+      "imageHint": "student portrait"
+    },
+    {
+      "id": "student-15",
+      "description": "Avatar for student 15",
+      "imageUrl": "https://picsum.photos/seed/15/100/100",
+      "imageHint": "student portrait"
+    }
+  ]
 }
