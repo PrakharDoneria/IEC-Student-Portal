@@ -1,101 +1,95 @@
-import type { Student, Class, AttendanceRecord, StudentAttendanceSummary } from '@/lib/types';
+import type {
+  Student,
+  Class,
+  StudentAttendanceSummary,
+  StudentAttendanceDetails,
+} from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
+const API_BASE_URL = process.env.API_BASE_URL;
+
+// Mock data for classes as there is no endpoint for it.
 const classes: Class[] = [
-  { id: 'cs101', name: 'Computer Science 101' },
-  { id: 'ma202', name: 'Mathematics 202' },
-  { id: 'ph303', name: 'Physics 303' },
+  { id: '2C', name: 'Computer Science 2C' },
+  { id: '3B', name: 'Computer Science 3B' },
+  { id: '4A', name: 'Computer Science 4A' },
 ];
-
-const students: Student[] = [
-  // CS101 Students
-  { id: 's1', name: 'Alice Johnson', rollNumber: 'CS101-001', classId: 'cs101', avatarUrl: PlaceHolderImages[0].imageUrl },
-  { id: 's2', name: 'Bob Williams', rollNumber: 'CS101-002', classId: 'cs101', avatarUrl: PlaceHolderImages[1].imageUrl },
-  { id: 's3', name: 'Charlie Brown', rollNumber: 'CS101-003', classId: 'cs101', avatarUrl: PlaceHolderImages[2].imageUrl },
-  { id: 's4', name: 'Diana Miller', rollNumber: 'CS101-004', classId: 'cs101', avatarUrl: PlaceHolderImages[3].imageUrl },
-  { id: 's5', name: 'Ethan Davis', rollNumber: 'CS101-005', classId: 'cs101', avatarUrl: PlaceHolderImages[4].imageUrl },
-
-  // MA202 Students
-  { id: 's6', name: 'Fiona Garcia', rollNumber: 'MA202-001', classId: 'ma202', avatarUrl: PlaceHolderImages[5].imageUrl },
-  { id: 's7', name: 'George Rodriguez', rollNumber: 'MA202-002', classId: 'ma202', avatarUrl: PlaceHolderImages[6].imageUrl },
-  { id: 's8', name: 'Hannah Wilson', rollNumber: 'MA202-003', classId: 'ma202', avatarUrl: PlaceHolderImages[7].imageUrl },
-  { id: 's9', name: 'Ian Martinez', rollNumber: 'MA202-004', classId: 'ma202', avatarUrl: PlaceHolderImages[8].imageUrl },
-  { id: 's10', name: 'Jane Anderson', rollNumber: 'MA202-005', classId: 'ma202', avatarUrl: PlaceHolderImages[9].imageUrl },
-
-  // PH303 Students
-  { id: 's11', name: 'Kyle Taylor', rollNumber: 'PH303-001', classId: 'ph303', avatarUrl: PlaceHolderImages[10].imageUrl },
-  { id: 's12', name: 'Laura Thomas', rollNumber: 'PH303-002', classId: 'ph303', avatarUrl: PlaceHolderImages[11].imageUrl },
-  { id: 's13', name: 'Mason Hernandez', rollNumber: 'PH303-003', classId: 'ph303', avatarUrl: PlaceHolderImages[12].imageUrl },
-  { id: 's14', name: 'Nora Moore', rollNumber: 'PH303-004', classId: 'ph303', avatarUrl: PlaceHolderImages[13].imageUrl },
-  { id: 's15', name: 'Owen Martin', rollNumber: 'PH303-005', classId: 'ph303', avatarUrl: PlaceHolderImages[14].imageUrl },
-];
-
-const attendanceRecords: { [studentId: string]: AttendanceRecord[] } = {};
-
-// Generate mock attendance history
-students.forEach(student => {
-  attendanceRecords[student.id] = [];
-  for (let i = 1; i <= 20; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const status = Math.random() > 0.15 ? 'present' : 'absent'; // 85% chance of being present
-    attendanceRecords[student.id].push({ date: date.toISOString().split('T')[0], status });
-  }
-});
-
 
 // Mock API functions
 export const getClasses = async (): Promise<Class[]> => {
-  await new Promise(resolve => setTimeout(resolve, 200));
+  // This remains a mock as there's no API endpoint for fetching all unique classes.
+  // In a real app, this might be a separate endpoint or derived from student data.
+  await new Promise(resolve => setTimeout(resolve, 100));
   return classes;
 };
 
 export const getStudentsByClass = async (classId: string): Promise<Student[]> => {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return students.filter(s => s.classId === classId);
+  if (!classId) return [];
+  try {
+    const res = await fetch(`${API_BASE_URL}/students/${classId}`);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch students for class ${classId}`);
+    }
+    const studentsData: Omit<Student, 'avatarUrl'>[] = await res.json();
+    
+    // Add placeholder avatar URLs for the UI
+    const studentsWithAvatars: Student[] = studentsData.map((student, index) => ({
+      ...student,
+      avatarUrl: PlaceHolderImages[index % PlaceHolderImages.length].imageUrl,
+    }));
+
+    return studentsWithAvatars;
+  } catch (error) {
+    console.error('Error in getStudentsByClass:', error);
+    return [];
+  }
 };
 
-export const getStudentsByClassWithHistory = async (classId: string): Promise<Student[]> => {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  const classStudents = students.filter(s => s.classId === classId);
-  return classStudents.map(s => ({
-    ...s,
-    attendanceHistory: attendanceRecords[s.id] || [],
+
+export const getStudentAttendanceSummary = async (rollNumber: string): Promise<StudentAttendanceSummary> => {
+  if (!rollNumber) throw new Error('Roll number is required.');
+  const res = await fetch(`${API_BASE_URL}/students/${rollNumber}/attendance-summary`);
+  if (!res.ok) {
+    throw new Error('Failed to fetch student attendance summary.');
+  }
+  return res.json();
+};
+
+export const getStudentAttendanceDetails = async (rollNumber: string): Promise<StudentAttendanceDetails> => {
+  if (!rollNumber) throw new Error('Roll number is required.');
+  const res = await fetch(`${API_BASE_URL}/students/${rollNumber}/attendance`);
+  if (!res.ok) {
+    throw new Error('Failed to fetch student attendance details.');
+  }
+  return res.json();
+};
+
+export const markAttendance = async (payload: {
+  classId: string;
+  subject: string;
+  attendance: { Roll_Number: string; Name: string; Status: 'Present' | 'Absent' }[];
+}): Promise<{ success: true, message: string }> => {
+  
+  const attendanceData = payload.attendance.map(item => ({
+    ...item,
+    Class_Number: payload.classId,
+    Subject_Code: payload.subject,
   }));
-};
 
-export const getStudentAttendanceSummary = async (studentId: string): Promise<StudentAttendanceSummary> => {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  const records = attendanceRecords[studentId] || [];
-  const presentCount = records.filter(r => r.status === 'present').length;
-  const absentCount = records.filter(r => r.status === 'absent').length;
-  const totalClasses = records.length;
-
-  return {
-    studentId,
-    totalClasses,
-    presentCount,
-    absentCount,
-    records: records.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-  };
-};
-
-export const markAttendance = async (payload: { classId: string; date: string; attendance: { studentId: string; status: 'present' | 'absent' }[] }): Promise<{ success: true }> => {
-  console.log('Marking attendance for class:', payload.classId, 'on date:', payload.date);
-  console.log('Payload:', payload.attendance);
-  await new Promise(resolve => setTimeout(resolve, 500));
-  // In a real app, you would save this to a database.
-  payload.attendance.forEach(({ studentId, status }) => {
-    if (!attendanceRecords[studentId]) {
-      attendanceRecords[studentId] = [];
-    }
-    // Avoid duplicate records for the same day
-    const existingRecordIndex = attendanceRecords[studentId].findIndex(r => r.date === payload.date);
-    if (existingRecordIndex !== -1) {
-      attendanceRecords[studentId][existingRecordIndex].status = status;
-    } else {
-      attendanceRecords[studentId].push({ date: payload.date, status });
-    }
+  const res = await fetch(`${API_BASE_URL}/faculty/mark_attendance`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(attendanceData),
   });
-  return { success: true };
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error("Mark Attendance API Error:", errorBody);
+    throw new Error('Failed to mark attendance.');
+  }
+
+  const result = await res.json();
+  return { success: true, message: result.message || "Attendance marked successfully!" };
 };

@@ -30,7 +30,7 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from '@/components/ui/chart';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { getStudentAttendanceSummary } from '@/app/actions';
 import type { Student, StudentAttendanceSummary } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
@@ -48,6 +48,10 @@ const chartConfig = {
     label: 'Absent',
     color: 'hsl(var(--destructive))',
   },
+  percentage: {
+    label: 'Percentage',
+    color: 'hsl(var(--primary))',
+  },
 } satisfies ChartConfig;
 
 export function StudentAttendanceSummaryView({ student }: StudentAttendanceSummaryViewProps) {
@@ -57,28 +61,36 @@ export function StudentAttendanceSummaryView({ student }: StudentAttendanceSumma
   useEffect(() => {
     const fetchSummary = async () => {
       setLoading(true);
-      const result = await getStudentAttendanceSummary(student.id);
+      const result = await getStudentAttendanceSummary(student.Roll_Number);
       if (result.success) {
         setSummary(result.data);
+      } else {
+        // Handle error case, maybe show a toast
+        console.error(result.error);
       }
       setLoading(false);
     };
 
     fetchSummary();
-  }, [student.id]);
+  }, [student.Roll_Number]);
 
-  const attendancePercentage = summary
-    ? summary.totalClasses > 0
-      ? (summary.presentCount / summary.totalClasses) * 100
-      : 0
-    : 0;
-
-  const chartData = summary
+  const pieChartData = summary
     ? [
-        { name: 'Present', value: summary.presentCount, fill: 'var(--color-present)' },
-        { name: 'Absent', value: summary.absentCount, fill: 'var(--color-absent)' },
+        { name: 'Present', value: summary.summary.presentDays, fill: 'var(--color-present)' },
+        { name: 'Absent', value: summary.summary.totalDays - summary.summary.presentDays, fill: 'var(--color-absent)' },
       ]
     : [];
+
+  const barChartData = summary ? Object.entries(summary.summary.subjects).map(([subjectCode, subjectData]) => ({
+    name: subjectCode,
+    percentage: parseFloat(subjectData.percentage),
+    present: subjectData.present,
+    total: subjectData.totalClasses,
+  })) : [];
+  
+  const getStatusForSubject = (record: { Date: string; [key: string]: string }, subjectCode: string): string => {
+    return record[subjectCode] || 'N/A';
+  };
 
   return (
     <ScrollArea className="h-full">
@@ -86,13 +98,13 @@ export function StudentAttendanceSummaryView({ student }: StudentAttendanceSumma
         <SheetHeader className="mb-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={student.avatarUrl} alt={student.name} data-ai-hint="student portrait" />
-              <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={student.avatarUrl} alt={student.Name} data-ai-hint="student portrait" />
+              <AvatarFallback>{student.Name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
-              <SheetTitle className="text-2xl font-bold">{student.name}</SheetTitle>
+              <SheetTitle className="text-2xl font-bold">{student.Name}</SheetTitle>
               <SheetDescription>
-                Roll No: {student.rollNumber}
+                Roll No: {student.Roll_Number} | Class: {student.Class_Number}
               </SheetDescription>
             </div>
           </div>
@@ -120,13 +132,13 @@ export function StudentAttendanceSummaryView({ student }: StudentAttendanceSumma
                             content={<ChartTooltipContent hideLabel />}
                           />
                           <Pie
-                            data={chartData}
+                            data={pieChartData}
                             dataKey="value"
                             nameKey="name"
                             innerRadius={40}
                             strokeWidth={5}
                           >
-                            {chartData.map((entry) => (
+                            {pieChartData.map((entry) => (
                               <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                             ))}
                           </Pie>
@@ -137,30 +149,49 @@ export function StudentAttendanceSummaryView({ student }: StudentAttendanceSumma
                   <div className="col-span-2 grid grid-cols-2 gap-4">
                     <Card className="flex flex-col items-center justify-center p-4">
                       <div className="text-3xl font-bold">
-                        {attendancePercentage.toFixed(1)}%
+                        {summary.summary.overallPercentage}
                       </div>
                       <div className="text-sm text-muted-foreground">Overall</div>
                     </Card>
                     <Card className="flex flex-col items-center justify-center p-4">
                       <div className="text-3xl font-bold text-accent">
-                        {summary.presentCount}
+                        {summary.summary.presentDays}
                       </div>
-                      <div className="text-sm text-muted-foreground">Present</div>
+                      <div className="text-sm text-muted-foreground">Present Days</div>
                     </Card>
                     <Card className="flex flex-col items-center justify-center p-4">
                       <div className="text-3xl font-bold text-destructive">
-                        {summary.absentCount}
+                        {summary.summary.totalDays - summary.summary.presentDays}
                       </div>
-                      <div className="text-sm text-muted-foreground">Absent</div>
+                      <div className="text-sm text-muted-foreground">Absent Days</div>
                     </Card>
                      <Card className="flex flex-col items-center justify-center p-4">
                       <div className="text-3xl font-bold">
-                        {summary.totalClasses}
+                        {summary.summary.totalDays}
                       </div>
-                      <div className="text-sm text-muted-foreground">Total Classes</div>
+                      <div className="text-sm text-muted-foreground">Total Days</div>
                     </Card>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Subject-wise Attendance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                  <ResponsiveContainer>
+                    <BarChart data={barChartData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
+                      <YAxis domain={[0, 100]} unit="%" />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="percentage" fill="var(--color-present)" radius={4} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
               </CardContent>
             </Card>
             
@@ -170,30 +201,30 @@ export function StudentAttendanceSummaryView({ student }: StudentAttendanceSumma
                 <CardDescription>Last 20 records</CardDescription>
               </CardHeader>
               <CardContent>
-                 <div className="border rounded-md">
+                 <div className="border rounded-md overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Status</TableHead>
+                        {barChartData.map(subject => (
+                          <TableHead key={subject.name} className="text-right">{subject.name}</TableHead>
+                        ))}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {summary.records.slice(0, 20).map((record) => (
-                        <TableRow key={record.date}>
-                          <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-right">
-                            <Badge
-                              variant={
-                                record.status === 'present'
-                                  ? 'default'
-                                  : 'destructive'
-                              }
-                              className={record.status === 'present' ? 'bg-accent' : ''}
-                            >
-                              {record.status}
-                            </Badge>
-                          </TableCell>
+                      {summary.attendanceRecords.slice(0, 20).map((record) => (
+                        <TableRow key={record.Date}>
+                          <TableCell>{record.Date}</TableCell>
+                           {barChartData.map(subject => (
+                            <TableCell key={subject.name} className="text-right">
+                              <Badge
+                                variant={getStatusForSubject(record, subject.name) === 'Present' ? 'default' : getStatusForSubject(record, subject.name) === 'Absent' ? 'destructive' : 'secondary'}
+                                className={getStatusForSubject(record, subject.name) === 'Present' ? 'bg-accent' : ''}
+                              >
+                                {getStatusForSubject(record, subject.name)}
+                              </Badge>
+                            </TableCell>
+                          ))}
                         </TableRow>
                       ))}
                     </TableBody>
@@ -231,6 +262,14 @@ function SummarySkeleton() {
               <Skeleton className="h-24 w-full" />
             </div>
           </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-32" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-64 w-full" />
         </CardContent>
       </Card>
       <Card>

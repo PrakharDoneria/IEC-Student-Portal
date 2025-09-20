@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import {
   Select,
   SelectContent,
@@ -18,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -56,8 +55,8 @@ export function StudentRoster({
     if (!searchTerm) return students;
     return students.filter(
       (student) =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
+        student.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.Roll_Number.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [students, searchTerm]);
 
@@ -105,7 +104,7 @@ export function StudentRoster({
                 {filteredStudents.length > 0 ? (
                   filteredStudents.map((student) => (
                     <TableRow
-                      key={student.id}
+                      key={student._id}
                       onClick={() => handleRowClick(student)}
                       className="cursor-pointer"
                     >
@@ -113,17 +112,17 @@ export function StudentRoster({
                         <Avatar>
                           <AvatarImage
                             src={student.avatarUrl}
-                            alt={student.name}
+                            alt={student.Name}
                             data-ai-hint="student portrait"
                           />
                           <AvatarFallback>
-                            {student.name.charAt(0)}
+                            {student.Name.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
                       </TableCell>
-                      <TableCell className="font-medium">{student.name}</TableCell>
+                      <TableCell className="font-medium">{student.Name}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{student.rollNumber}</Badge>
+                        <Badge variant="secondary">{student.Roll_Number}</Badge>
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground text-xs">
                         Click to view
@@ -144,7 +143,7 @@ export function StudentRoster({
       </Card>
 
       <Sheet open={!!selectedStudent} onOpenChange={(open) => !open && setSelectedStudent(null)}>
-        <SheetContent className="sm:max-w-xl w-full p-0">
+        <SheetContent className="sm:max-w-2xl w-full p-0">
           {selectedStudent && <StudentAttendanceSummaryView student={selectedStudent} />}
         </SheetContent>
       </Sheet>

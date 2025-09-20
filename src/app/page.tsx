@@ -2,6 +2,7 @@ import { getClasses, getStudentsByClass } from '@/lib/data';
 import { StudentRoster } from '@/components/student-roster';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Class, Student } from '@/lib/types';
 
 export default async function Home({
   searchParams,
@@ -30,7 +31,7 @@ export default async function Home({
   );
 }
 
-async function RosterDataWrapper({ selectedClassId, classes }: { selectedClassId: string; classes: any[] }) {
+async function RosterDataWrapper({ selectedClassId, classes }: { selectedClassId: string; classes: Class[] }) {
   const students = selectedClassId ? await getStudentsByClass(selectedClassId) : [];
   return <StudentRoster classes={classes} students={students} selectedClassId={selectedClassId} />;
 }
@@ -39,7 +40,12 @@ function RosterSkeleton() {
   return (
     <div className="space-y-4">
       <Skeleton className="h-10 w-64" />
-      <Skeleton className="h-96 w-full" />
+      <div className="border rounded-md">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
     </div>
   )
 }

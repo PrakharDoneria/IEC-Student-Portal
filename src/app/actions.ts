@@ -3,37 +3,48 @@
 import {
   getStudentsByClass,
   getStudentAttendanceSummary as getSummary,
+  getStudentAttendanceDetails,
   markAttendance,
 } from '@/lib/data';
-import type { Student, StudentAttendanceSummary } from '@/lib/types';
+import type { Student, StudentAttendanceSummary, StudentAttendanceDetails } from '@/lib/types';
 
 type AttendancePayload = {
-  studentId: string;
-  status: 'present' | 'absent';
+  Roll_Number: string;
+  Name: string;
+  Status: 'Present' | 'Absent';
 };
 
-export async function submitAttendance(classId: string, attendanceData: AttendancePayload[]): Promise<{ success: true; message: string } | { success: false; error: string }> {
+export async function submitAttendance(classId: string, subject: string, attendanceData: AttendancePayload[]): Promise<{ success: true; message: string } | { success: false; error: string }> {
   try {
-    await markAttendance({
+    const result = await markAttendance({
       classId,
-      date: new Date().toISOString().split('T')[0],
+      subject,
       attendance: attendanceData,
     });
-    return { success: true, message: 'Attendance marked successfully!' };
+    return { success: true, message: result.message };
   } catch (error) {
     console.error('Submit Attendance Error:', error);
-    return { success: false, error: 'Failed to submit attendance.' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to submit attendance.';
+    return { success: false, error: errorMessage };
   }
 }
 
-
-export async function getStudentAttendanceSummary(studentId: string): Promise<{ success: true; data: StudentAttendanceSummary } | { success: false; error: string }> {
+export async function getStudentAttendanceSummary(rollNumber: string): Promise<{ success: true; data: StudentAttendanceSummary } | { success: false; error: string }> {
   try {
-    const data = await getSummary(studentId);
-    return { success: true, data };
+    const summaryData = await getSummary(rollNumber);
+    const detailsData = await getStudentAttendanceDetails(rollNumber);
+
+    // The summary endpoint doesn't return records, so we merge them from the details endpoint.
+    const combinedData: StudentAttendanceSummary = {
+        ...summaryData,
+        attendanceRecords: detailsData.attendanceRecords
+    };
+
+    return { success: true, data: combinedData };
   } catch (error) {
      console.error('Get Summary Error:', error);
-    return { success: false, error: 'Failed to fetch student summary.' };
+     const errorMessage = error instanceof Error ? error.message : 'Failed to fetch student summary.';
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -46,6 +57,7 @@ export async function fetchStudentsForClass(classId: string): Promise<{ success:
     return { success: true, data: students };
   } catch (error) {
     console.error('Fetch Students Error:', error);
-    return { success: false, error: 'Failed to fetch students.' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch students.';
+    return { success: false, error: errorMessage };
   }
 }

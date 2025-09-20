@@ -1,5 +1,6 @@
 import type {NextConfig} from 'next';
 
+/** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
@@ -23,6 +24,9 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  env: {
+    API_BASE_URL: process.env.API_BASE_URL,
   },
 };
 
