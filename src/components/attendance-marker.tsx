@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import {
   Select,
@@ -20,30 +20,25 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { getAIAttendancePrediction, submitAttendance } from '@/app/actions';
-import type { Class } from '@/lib/types';
-import type { PrepareAttendanceWithAIOutput } from '@/ai/flows/prepare-attendance-with-ai';
-import { Loader2, Sparkles, CheckCircle, XCircle } from 'lucide-react';
+import { fetchStudentsForClass, submitAttendance } from '@/app/actions';
+import type { Class, Student } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
 
 type FormValues = {
   attendance: {
     studentId: string;
     studentName: string;
     avatarUrl: string;
-    predictedStatus?: 'present' | 'absent';
-    confidence?: number;
     status: 'present' | 'absent';
   }[];
 };
 
 export function AttendanceMarker({ classes }: { classes: Class[] }) {
   const [selectedClassId, setSelectedClassId] = useState<string | undefined>(classes[0]?.id);
-  const [externalFactors, setExternalFactors] = useState('');
-  const [isPreparing, startPreparing] = useTransition();
+  const [isLoading, startLoading] = useTransition();
   const [isSubmitting, startSubmitting] = useTransition();
   const { toast } = useToast();
 
@@ -58,34 +53,40 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
     name: 'attendance',
   });
 
-  const handlePrepare = () => {
+  const handleLoadRoster = () => {
     if (!selectedClassId) {
       toast({ title: 'Error', description: 'Please select a class first.', variant: 'destructive' });
       return;
     }
 
-    startPreparing(async () => {
-      const result = await getAIAttendancePrediction(selectedClassId, externalFactors);
+    startLoading(async () => {
+      const result = await fetchStudentsForClass(selectedClassId);
       if (result.success && result.data) {
-        const studentMap = new Map(result.data.map(s => [s.studentId, s]));
-        const aiStudents = result.data.map(student => {
-           const studentDetails = studentMap.get(student.studentId);
-           return {
-              studentId: student.studentId,
-              studentName: student.studentName,
-              avatarUrl: `https://picsum.photos/seed/${student.studentId}/100/100`, // Assuming studentId can be a seed
-              predictedStatus: student.predictedStatus,
-              confidence: student.confidence,
-              status: student.predictedStatus,
-           }
-        });
-        replace(aiStudents);
-        toast({ title: 'Success', description: 'AI has prepared the attendance sheet.' });
+        const students = result.data.map(student => ({
+          studentId: student.id,
+          studentName: student.name,
+          avatarUrl: student.avatarUrl,
+          status: 'present' as const, // Default to present
+        }));
+        replace(students);
+        toast({ title: 'Success', description: 'Roster loaded.' });
       } else {
         toast({ title: 'Error', description: result.error, variant: 'destructive' });
+        replace([]);
       }
     });
   };
+
+  useEffect(() => {
+    // Automatically load roster when a class is selected
+    if (selectedClassId) {
+      handleLoadRoster();
+    } else {
+      replace([]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClassId]);
+
 
   const onSubmit = (data: FormValues) => {
     if (!selectedClassId) return;
@@ -106,12 +107,11 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Setup Attendance</CardTitle>
-          <CardDescription>Select a class and provide any external factors affecting attendance today.</CardDescription>
+          <CardTitle>Select Class</CardTitle>
+          <CardDescription>Choose a class to load the student roster for attendance marking.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-            <div className="space-y-2">
+        <CardContent>
+            <div className="space-y-2 max-w-sm">
               <Label htmlFor="class-select">Class</Label>
               <Select value={selectedClassId} onValueChange={setSelectedClassId}>
                 <SelectTrigger id="class-select">
@@ -126,28 +126,16 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="external-factors">External Factors (Optional)</Label>
-              <Input
-                id="external-factors"
-                placeholder="e.g., Public transport strike"
-                value={externalFactors}
-                onChange={(e) => setExternalFactors(e.target.value)}
-              />
-            </div>
-          </div>
-          <Button onClick={handlePrepare} disabled={isPreparing || !selectedClassId}>
-            {isPreparing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-            Prepare with AI
-          </Button>
         </CardContent>
       </Card>
       
-      {fields.length > 0 && (
+      {isLoading && <Loader2 className="mx-auto my-8 h-8 w-8 animate-spin text-primary" />}
+
+      {!isLoading && fields.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Review & Mark Attendance</CardTitle>
-            <CardDescription>Review the AI's suggestions and make any necessary changes before submitting.</CardDescription>
+            <CardTitle>Mark Attendance</CardTitle>
+            <CardDescription>Mark each student as present or absent.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -156,7 +144,6 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Student</TableHead>
-                      <TableHead>AI Prediction</TableHead>
                       <TableHead className="text-right">Mark Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -170,13 +157,6 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
                               <AvatarFallback>{field.studentName.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <span className="font-medium">{field.studentName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm">
-                            {field.predictedStatus === 'present' ? <CheckCircle className="h-4 w-4 text-accent" /> : <XCircle className="h-4 w-4 text-destructive" />}
-                            <span>{field.predictedStatus?.charAt(0).toUpperCase() + field.predictedStatus?.slice(1)}</span>
-                            <span className="text-muted-foreground">({(field.confidence! * 100).toFixed(0)}%)</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">

@@ -1,41 +1,11 @@
 "use server";
 
 import {
-  prepareAttendanceWithAI,
-  type PrepareAttendanceWithAIOutput,
-} from '@/ai/flows/prepare-attendance-with-ai';
-import {
-  getStudentsByClassWithHistory,
+  getStudentsByClass,
   getStudentAttendanceSummary as getSummary,
   markAttendance,
 } from '@/lib/data';
 import type { Student, StudentAttendanceSummary } from '@/lib/types';
-
-export async function getAIAttendancePrediction(classId: string, externalFactors: string): Promise<{ success: true; data: PrepareAttendanceWithAIOutput } | { success: false; error: string }> {
-  try {
-    const students = await getStudentsByClassWithHistory(classId);
-
-    if (students.length === 0) {
-      return { success: false, error: 'No students found for this class.' };
-    }
-
-    const input = {
-      classRoster: students.map((s) => ({
-        studentId: s.id,
-        studentName: s.name,
-        attendanceHistory: s.attendanceHistory,
-      })),
-      currentDate: new Date().toISOString().split('T')[0],
-      externalFactors: externalFactors || 'No special circumstances reported.',
-    };
-
-    const result = await prepareAttendanceWithAI(input);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('AI Prediction Error:', error);
-    return { success: false, error: 'Failed to get AI prediction.' };
-  }
-}
 
 type AttendancePayload = {
   studentId: string;
@@ -64,5 +34,18 @@ export async function getStudentAttendanceSummary(studentId: string): Promise<{ 
   } catch (error) {
      console.error('Get Summary Error:', error);
     return { success: false, error: 'Failed to fetch student summary.' };
+  }
+}
+
+export async function fetchStudentsForClass(classId: string): Promise<{ success: true; data: Student[] } | { success: false; error: string }> {
+  try {
+    const students = await getStudentsByClass(classId);
+    if (students.length === 0) {
+      return { success: false, error: 'No students found for this class.' };
+    }
+    return { success: true, data: students };
+  } catch (error) {
+    console.error('Fetch Students Error:', error);
+    return { success: false, error: 'Failed to fetch students.' };
   }
 }

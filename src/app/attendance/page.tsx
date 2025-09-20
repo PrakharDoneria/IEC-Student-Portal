@@ -11,7 +11,7 @@ export default async function AttendancePage() {
           Mark Attendance
         </h1>
         <p className="text-muted-foreground mt-1">
-          Use AI to pre-fill attendance, then review and submit.
+          Select a class to load the roster and mark attendance.
         </p>
       </header>
       <main className="flex-1 p-6 overflow-auto">
