@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,6 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { addStudent } from '@/app/actions';
 import type { NewStudent } from '@/lib/types';
@@ -19,7 +21,8 @@ import { AlertCircle } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  class: z.string().min(1, { message: 'Class is required.' }),
+  year: z.string({ required_error: 'Please select a year.' }),
+  section: z.string({ required_error: 'Please select a section.' }),
   roll_number: z.string().min(5, { message: 'A valid roll number is required.' }),
   mobile_number: z.string().regex(/^\d{10}$/, { message: 'Mobile number must be 10 digits.' }),
 });
@@ -40,7 +43,6 @@ export default function RegisterPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      class: '',
       roll_number: '',
       mobile_number: '',
     },
@@ -48,7 +50,15 @@ export default function RegisterPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    const result = await addStudent(values);
+    
+    const studentData: NewStudent = {
+      name: values.name,
+      class: `${values.year}${values.section}`,
+      roll_number: values.roll_number,
+      mobile_number: values.mobile_number,
+    };
+
+    const result = await addStudent(studentData);
     if (result.success) {
       localStorage.setItem('hasRegistered', 'true');
       toast({
@@ -117,19 +127,53 @@ export default function RegisterPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="class"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Class</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., 2C" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                   <FormField
+                    control={form.control}
+                    name="year"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Year</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select year" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1">1st Year</SelectItem>
+                            <SelectItem value="2">2nd Year</SelectItem>
+                            <SelectItem value="3">3rd Year</SelectItem>
+                            <SelectItem value="4">4th Year</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="section"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Section</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select section" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(sec => (
+                                <SelectItem key={sec} value={sec}>Section {sec}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="roll_number"
