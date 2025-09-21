@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -9,11 +10,6 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import {
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet';
-import {
   Table,
   TableBody,
   TableCell,
@@ -21,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -32,12 +28,9 @@ import {
 } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { getStudentAttendanceSummary } from '@/app/actions';
-import type { Student, StudentAttendanceSummary } from '@/lib/types';
+import type { StudentAttendanceSummary } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
-
-type StudentAttendanceSummaryViewProps = {
-  student: Student;
-};
+import { useToast } from '@/hooks/use-toast';
 
 const chartConfig = {
   present: {
@@ -54,25 +47,44 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function StudentAttendanceSummaryView({ student }: StudentAttendanceSummaryViewProps) {
+export function StudentAttendanceSummaryView() {
   const [summary, setSummary] = useState<StudentAttendanceSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
+    const rollNumber = localStorage.getItem('studentRollNumber');
+    if (!rollNumber) {
+      toast({
+        title: 'Not logged in',
+        description: 'Redirecting to login page.',
+        variant: 'destructive',
+      });
+      router.push('/');
+      return;
+    }
+
     const fetchSummary = async () => {
       setLoading(true);
-      const result = await getStudentAttendanceSummary(student.Roll_Number);
+      const result = await getStudentAttendanceSummary(rollNumber);
       if (result.success) {
         setSummary(result.data);
       } else {
-        // Handle error case, maybe show a toast
-        console.error(result.error);
+        toast({
+          title: 'Error',
+          description: result.error,
+          variant: 'destructive'
+        });
+        // Clear broken roll number and redirect
+        localStorage.removeItem('studentRollNumber');
+        router.push('/');
       }
       setLoading(false);
     };
 
     fetchSummary();
-  }, [student.Roll_Number]);
+  }, [router, toast]);
 
   const pieChartData = summary
     ? [
@@ -92,27 +104,33 @@ export function StudentAttendanceSummaryView({ student }: StudentAttendanceSumma
     return record[subjectCode] || 'N/A';
   };
 
+  if (loading) {
+    return <SummarySkeleton />;
+  }
+
+  if (!summary) {
+    return (
+      <div className="flex items-center justify-center h-full p-4 text-center">
+        <p>Could not load attendance summary. Please try logging in again.</p>
+      </div>
+    );
+  }
+
   return (
     <ScrollArea className="h-full">
-      <div className="p-6">
-        <SheetHeader className="mb-6">
-          <div className="flex items-center gap-4">
+      <div className="p-4 md:p-6">
+          <div className="flex items-center gap-4 mb-6">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={student.avatarUrl} alt={student.Name} data-ai-hint="student portrait" />
-              <AvatarFallback>{student.Name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{summary.student.Name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
-              <SheetTitle className="text-2xl font-bold">{student.Name}</SheetTitle>
-              <SheetDescription>
-                Roll No: {student.Roll_Number} | Class: {student.Class_Number}
-              </SheetDescription>
+              <h2 className="text-2xl font-bold">{summary.student.Name}</h2>
+              <p className="text-muted-foreground">
+                Roll No: {summary.student.Roll_Number} | Class: {summary.student.Class_Number}
+              </p>
             </div>
           </div>
-        </SheetHeader>
 
-        {loading ? (
-          <SummarySkeleton />
-        ) : summary ? (
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -232,11 +250,7 @@ export function StudentAttendanceSummaryView({ student }: StudentAttendanceSumma
                 </div>
               </CardContent>
             </Card>
-
           </div>
-        ) : (
-          <p>No attendance summary available for this student.</p>
-        )}
       </div>
     </ScrollArea>
   );
@@ -246,6 +260,13 @@ export function StudentAttendanceSummaryView({ student }: StudentAttendanceSumma
 function SummarySkeleton() {
   return (
     <div className="space-y-6 p-6">
+      <div className="flex items-center gap-4 mb-6">
+        <Skeleton className="h-16 w-16 rounded-full" />
+        <div className="space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
       <Card>
         <CardHeader>
           <Skeleton className="h-6 w-48" />
