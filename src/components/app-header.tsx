@@ -13,8 +13,10 @@ import {
   SheetTitle
 } from '@/components/ui/sheet';
 import { Button } from './ui/button';
-import { Menu, User, Calculator, LayoutDashboard, LogOut, MoreHorizontal } from 'lucide-react';
+import { Menu, User, Calculator, LayoutDashboard, LogOut, MoreHorizontal, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 type NavLink = {
     href: string;
@@ -26,17 +28,18 @@ export function AppHeader() {
   const [studentName, setStudentName] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
 
   useEffect(() => {
     const rollNumber = localStorage.getItem('studentRollNumber');
     if (!rollNumber) {
-      // Allow access to login and register pages
-      if (pathname !== '/' && pathname !== '/register') {
+      // Allow access to public pages
+      if (pathname !== '/' && pathname !== '/register' && !pathname.startsWith('/faculty')) {
         router.replace('/');
       }
       setStudentName(null);
     } else {
-       if (pathname === '/' || pathname === '/register') {
+       if (pathname === '/' || pathname === '/register' || pathname.startsWith('/faculty')) {
           router.replace('/summary');
        }
       if (!studentName) {
@@ -59,8 +62,16 @@ export function AppHeader() {
     router.push('/');
   };
   
-  // Don't render header on the login or register page
-  if (pathname === '/' || pathname === '/register') return null;
+  const showInstallPrompt = () => {
+    toast({
+      title: "How to Install App",
+      description: "To install the app, open your browser's menu and look for the 'Add to Home Screen' or 'Install App' option.",
+      duration: 10000,
+    });
+  }
+  
+  // Don't render header on login, register, or faculty pages
+  if (pathname === '/' || pathname === '/register' || pathname.startsWith('/faculty')) return null;
 
 
   const navLinks: NavLink[] = [
@@ -95,6 +106,10 @@ export function AppHeader() {
                       </Link>
                   </Button>
               ))}
+              <Button variant="outline" onClick={showInstallPrompt}>
+                <Download />
+                Install App
+              </Button>
               <Button variant="outline" onClick={handleLogout}>
                   <LogOut />
                   Logout
@@ -131,6 +146,10 @@ export function AppHeader() {
                                 <p className='font-bold text-lg'>{studentName || 'Student'}</p>
                                 <p className='text-sm text-muted-foreground'>IEC Student Portal</p>
                         </div>
+                         <Button variant="outline" onClick={showInstallPrompt}>
+                            <Download />
+                            Install App
+                        </Button>
                         <Button variant="destructive" onClick={handleLogout}>
                             <LogOut />
                             Logout
@@ -140,6 +159,16 @@ export function AppHeader() {
             </Sheet>
         </div>
       </div>
+       {pathname === '/summary' && (
+        <Alert className="md:hidden m-4 mt-4">
+          <Download className="h-4 w-4" />
+          <AlertTitle>Get the App!</AlertTitle>
+          <AlertDescription>
+            For a better experience, add this app to your home screen.
+            <Button variant="link" size="sm" onClick={showInstallPrompt} className="p-0 h-auto ml-1">Learn how</Button>
+          </AlertDescription>
+        </Alert>
+      )}
     </>
   );
 }

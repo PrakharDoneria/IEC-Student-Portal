@@ -22,6 +22,10 @@ export default function LoginPage() {
     if (storedRollNumber) {
       router.push('/summary');
     }
+    const facultyAccessCode = localStorage.getItem('facultyAccessCode');
+    if (facultyAccessCode) {
+      router.push('/faculty/dashboard');
+    }
   }, [router]);
 
   const handleLogin = async () => {
@@ -94,12 +98,20 @@ export default function LoginPage() {
           <Button onClick={handleLogin} disabled={loading} className="w-full">
             {loading ? 'Verifying...' : 'View My Attendance'}
           </Button>
-          <p className="text-sm text-center text-muted-foreground">
-              New student?{' '}
-              <Link href="/register" className="text-primary hover:underline">
-                Register here
-              </Link>
-            </p>
+          <div className="text-sm text-center text-muted-foreground">
+              <p>
+                New student?{' '}
+                <Link href="/register" className="text-primary hover:underline">
+                  Register here
+                </Link>
+              </p>
+              <p className='mt-2'>
+                Or{' '}
+                <Link href="/faculty/login" className="text-primary hover:underline">
+                  continue as faculty
+                </Link>
+              </p>
+          </div>
         </CardFooter>
       </Card>
     </main>
