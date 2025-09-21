@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { IecLogo } from '@/components/icons';
 import { getStudentAttendanceSummary } from './actions';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [rollNumber, setRollNumber] = useState('');
@@ -54,8 +54,17 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
-      <div className="flex flex-col items-center mb-8">
-        <IecLogo className="w-16 h-16 text-primary mb-4" />
+      <div className="absolute top-0 left-0 right-0">
+        <Image 
+          src="/logo.png" 
+          alt="College Banner" 
+          width={1200} 
+          height={200} 
+          className="w-full object-cover"
+          priority
+        />
+      </div>
+      <div className="flex flex-col items-center mb-8 text-center">
         <h1 className="text-3xl font-bold font-headline">IEC Student Portal</h1>
         <p className="text-muted-foreground">Your attendance, simplified.</p>
       </div>
