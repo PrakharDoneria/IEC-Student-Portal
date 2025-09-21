@@ -32,6 +32,8 @@ import type { StudentAttendanceSummary } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Laptop } from 'lucide-react';
 
 const chartConfig = {
   present: {
@@ -120,162 +122,169 @@ export function StudentAttendanceSummaryView() {
   return (
     <ScrollArea className="h-full">
       <div className="p-4 md:p-6 space-y-6">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback>{summary.student.Name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h2 className="text-2xl font-bold">{summary.student.Name}</h2>
-              <p className="text-muted-foreground text-sm">
-                Roll No: {summary.student.Roll_Number} | Class: {summary.student.Class_Number}
-              </p>
-            </div>
+        <Alert className="md:hidden">
+          <Laptop className="h-4 w-4" />
+          <AlertTitle>Better on Desktop</AlertTitle>
+          <AlertDescription>
+            For the best experience, we recommend using the desktop version.
+          </AlertDescription>
+        </Alert>
+
+        <div className="flex items-center gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarFallback>{summary.student.Name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="text-2xl font-bold">{summary.student.Name}</h2>
+            <p className="text-muted-foreground text-sm">
+              Roll No: {summary.student.Roll_Number} | Class: {summary.student.Class_Number}
+            </p>
           </div>
+        </div>
 
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Attendance Overview</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col md:flex-row items-center gap-6">
-                 <div className="w-full md:w-1/3 flex justify-center">
-                    <ChartContainer
-                      config={chartConfig}
-                      className="mx-auto aspect-square h-[150px]"
-                    >
-                      <ResponsiveContainer>
-                        <PieChart>
-                          <ChartTooltip
-                            cursor={false}
-                            content={<ChartTooltipContent hideLabel />}
-                          />
-                          <Pie
-                            data={pieChartData}
-                            dataKey="value"
-                            nameKey="name"
-                            innerRadius={40}
-                            strokeWidth={5}
-                          >
-                            {pieChartData.map((entry) => (
-                              <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-                  </div>
-                  <div className="w-full md:w-2/3 grid grid-cols-2 gap-4 text-center">
-                    <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-2xl font-bold">
-                        {summary.summary.overallPercentage}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Overall</div>
-                    </Card>
-                    <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-2xl font-bold text-accent">
-                        {summary.summary.presentDays}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Present Lectures</div>
-                    </Card>
-                    <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-2xl font-bold text-destructive">
-                        {summary.summary.totalDays - summary.summary.presentDays}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Absent</div>
-                    </Card>
-                     <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-2xl font-bold">
-                        {summary.summary.totalDays}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Total Lectures</div>
-                    </Card>
-                  </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Subject-wise Attendance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig} className="h-[250px] w-full">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Attendance Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+              <div className="flex justify-center">
+                <ChartContainer
+                  config={chartConfig}
+                  className="mx-auto aspect-square h-[120px] md:h-[150px]"
+                >
                   <ResponsiveContainer>
-                    <BarChart data={barChartData} margin={{ top: 20, right: 0, left: -20, bottom: 5 }}>
-                      <CartesianGrid vertical={false} />
-                      <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
-                      <YAxis domain={[0, 100]} unit="%" />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="percentage" fill="var(--color-present)" radius={4} />
-                    </BarChart>
+                    <PieChart>
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent hideLabel />}
+                      />
+                      <Pie
+                        data={pieChartData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={30}
+                        outerRadius={50}
+                        strokeWidth={5}
+                      >
+                        {pieChartData.map((entry) => (
+                          <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                    </PieChart>
                   </ResponsiveContainer>
                 </ChartContainer>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent History</CardTitle>
-                <CardDescription>Last 20 records</CardDescription>
-              </CardHeader>
-              <CardContent>
-                 <div className="border rounded-md overflow-hidden">
-                  <Table className="hidden md:table">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        {barChartData.map(subject => (
-                          <TableHead key={subject.name} className="text-center">{subject.name}</TableHead>
+              </div>
+              <div className="md:col-span-2 grid grid-cols-2 gap-3 md:gap-4 text-center">
+                <Card className="flex flex-col items-center justify-center p-3 md:p-4">
+                  <div className="text-xl md:text-2xl font-bold">
+                    {summary.summary.overallPercentage}
+                  </div>
+                  <div className="text-xs md:text-sm text-muted-foreground">Overall</div>
+                </Card>
+                <Card className="flex flex-col items-center justify-center p-3 md:p-4">
+                  <div className="text-xl md:text-2xl font-bold text-accent">
+                    {summary.summary.presentDays}
+                  </div>
+                  <div className="text-xs md:text-sm text-muted-foreground">Present Lectures</div>
+                </Card>
+                <Card className="flex flex-col items-center justify-center p-3 md:p-4">
+                  <div className="text-xl md:text-2xl font-bold text-destructive">
+                    {summary.summary.totalDays - summary.summary.presentDays}
+                  </div>
+                  <div className="text-xs md:text-sm text-muted-foreground">Absent</div>
+                </Card>
+                <Card className="flex flex-col items-center justify-center p-3 md:p-4">
+                  <div className="text-xl md:text-2xl font-bold">
+                    {summary.summary.totalDays}
+                  </div>
+                  <div className="text-xs md:text-sm text-muted-foreground">Total Lectures</div>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
 
+          <Card>
+            <CardHeader>
+              <CardTitle>Subject-wise Attendance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                <ResponsiveContainer>
+                  <BarChart data={barChartData} margin={{ top: 20, right: 0, left: -20, bottom: 5 }}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
+                    <YAxis domain={[0, 100]} unit="%" />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="percentage" fill="var(--color-present)" radius={4} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent History</CardTitle>
+              <CardDescription>Last 20 records</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-md overflow-hidden">
+                <Table className="hidden md:table">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      {barChartData.map(subject => (
+                        <TableHead key={subject.name} className="text-center">{subject.name}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {summary.attendanceRecords.slice(0, 20).map((record) => (
+                      <TableRow key={record.Date}>
+                        <TableCell className="font-medium">{record.Date}</TableCell>
+                        {barChartData.map(subject => (
+                          <TableCell key={subject.name} className="text-center">
+                            <Badge
+                              variant={getStatusForSubject(record, subject.name) === 'Present' ? 'default' : getStatusForSubject(record, subject.name) === 'Absent' ? 'destructive' : 'secondary'}
+                              className={cn('w-20 justify-center', getStatusForSubject(record, subject.name) === 'Present' ? 'bg-accent' : '')}
+                            >
+                              {getStatusForSubject(record, subject.name)}
+                            </Badge>
+                          </TableCell>
                         ))}
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {summary.attendanceRecords.slice(0, 20).map((record) => (
-                        <TableRow key={record.Date}>
-                          <TableCell className="font-medium">{record.Date}</TableCell>
-                           {barChartData.map(subject => (
-                            <TableCell key={subject.name} className="text-center">
-                              <Badge
-                                variant={getStatusForSubject(record, subject.name) === 'Present' ? 'default' : getStatusForSubject(record, subject.name) === 'Absent' ? 'destructive' : 'secondary'}
-                                className={cn('w-20 justify-center', getStatusForSubject(record, subject.name) === 'Present' ? 'bg-accent' : '')}
-                              >
-                                {getStatusForSubject(record, subject.name)}
-                              </Badge>
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                   <div className="md:hidden">
-                    {summary.attendanceRecords.slice(0, 20).map((record) => (
-                        <div key={record.Date} className="border-b last:border-b-0 p-4">
-                            <p className="font-bold mb-2">{record.Date}</p>
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                                {barChartData.map(subject => (
-                                    <div key={subject.name} className="flex justify-between items-center text-sm">
-                                        <span className="text-muted-foreground">{subject.name}</span>
-                                        <Badge
-                                            variant={getStatusForSubject(record, subject.name) === 'Present' ? 'default' : getStatusForSubject(record, subject.name) === 'Absent' ? 'destructive' : 'secondary'}
-                                            className={cn('w-20 justify-center', getStatusForSubject(record, subject.name) === 'Present' ? 'bg-accent' : '')}
-                                        >
-                                            {getStatusForSubject(record, subject.name)}
-                                        </Badge>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
                     ))}
-                </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </TableBody>
+                </Table>
+                <div className="md:hidden">
+                  {summary.attendanceRecords.slice(0, 20).map((record) => (
+                      <div key={record.Date} className="border-b last:border-b-0 p-4">
+                          <p className="font-bold mb-2">{record.Date}</p>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                              {barChartData.map(subject => (
+                                  <div key={subject.name} className="flex justify-between items-center text-sm">
+                                      <span className="text-muted-foreground">{subject.name}</span>
+                                      <Badge
+                                          variant={getStatusForSubject(record, subject.name) === 'Present' ? 'default' : getStatusForSubject(record, subject.name) === 'Absent' ? 'destructive' : 'secondary'}
+                                          className={cn('w-20 justify-center', getStatusForSubject(record, subject.name) === 'Present' ? 'bg-accent' : '')}
+                                      >
+                                          {getStatusForSubject(record, subject.name)}
+                                      </Badge>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  ))}
+              </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </ScrollArea>
   );
 }
-
 
 function SummarySkeleton() {
   return (
