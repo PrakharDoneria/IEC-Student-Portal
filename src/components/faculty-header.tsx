@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -5,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from './ui/button';
-import { LogOut, LayoutDashboard, PenSquare } from 'lucide-react';
+import { LogOut, LayoutDashboard, PenSquare, FileDown } from 'lucide-react';
 
 const FACULTY_SECURITY_CODE = 'Attend@IEC@ieccollege.com';
 
@@ -50,7 +51,7 @@ export function FacultyHeader() {
             <span className="font-bold text-lg text-muted-foreground">Faculty Portal</span>
           </Link>
           
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-2">
             <Button variant={pathname === '/faculty/dashboard' ? 'secondary' : 'ghost'} asChild>
                 <Link href="/faculty/dashboard" className="flex items-center gap-2">
                     <LayoutDashboard />
@@ -61,6 +62,12 @@ export function FacultyHeader() {
                 <Link href="/faculty/mark-attendance" className="flex items-center gap-2">
                     <PenSquare />
                     Mark Attendance
+                </Link>
+            </Button>
+            <Button variant={pathname === '/faculty/export-excel' ? 'secondary' : 'ghost'} asChild>
+                <Link href="/faculty/export-excel" className="flex items-center gap-2">
+                    <FileDown />
+                    Export Reports
                 </Link>
             </Button>
             <Button variant="outline" onClick={handleLogout}>

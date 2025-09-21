@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { fetchStudentsForClass, markAttendance } from '@/app/actions';
@@ -16,18 +18,9 @@ import type { Student, AttendanceMarking } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Dummy data for subjects
-const subjects = [
-    { code: 'DSTL', name: 'Data Structures & Algorithms' },
-    { code: 'COA', name: 'Computer Organization & Architecture' },
-    { code: 'DBMS', name: 'Database Management Systems' },
-    { code: 'OS', name: 'Operating Systems' },
-    { code: 'CN', name: 'Computer Networks' },
-];
-
 const attendanceFormSchema = z.object({
   classId: z.string({ required_error: 'Please select a class.' }),
-  subjectCode: z.string({ required_error: 'Please select a subject.' }),
+  subjectCode: z.string().min(1, 'Subject name cannot be empty.'),
   students: z.array(z.object({
     rollNumber: z.string(),
     name: z.string(),
@@ -49,6 +42,7 @@ export default function MarkAttendancePage() {
     resolver: zodResolver(attendanceFormSchema),
     defaultValues: {
       students: [],
+      subjectCode: '',
     },
   });
 
@@ -64,7 +58,7 @@ export default function MarkAttendancePage() {
       return;
     }
      if (!subjectCode) {
-      toast({ title: 'Please select a subject first.', variant: 'destructive' });
+      toast({ title: 'Please enter a subject name.', variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -95,7 +89,7 @@ export default function MarkAttendancePage() {
       Roll_Number: student.rollNumber,
       Name: student.name,
       Status: student.status,
-      Subject_Code: selectedSubject,
+      Subject_Code: selectedSubject.toUpperCase(), // Send subject code in uppercase
       Class_Number: selectedClass,
     }));
     
@@ -103,11 +97,7 @@ export default function MarkAttendancePage() {
 
     if (result.success) {
       toast({ title: 'Success', description: 'Attendance has been marked successfully.' });
-      setStudents([]);
-      replace([]);
-      form.reset();
-      setSelectedClass(null);
-      setSelectedSubject(null);
+      resetFormState();
     } else {
       toast({ title: 'Error', description: result.error, variant: 'destructive' });
     }
@@ -117,7 +107,7 @@ export default function MarkAttendancePage() {
   const resetFormState = () => {
     setStudents([]);
     replace([]);
-    form.reset();
+    form.reset({ classId: undefined, subjectCode: '', students: [] });
     setSelectedClass(null);
     setSelectedSubject(null);
   }
@@ -159,16 +149,9 @@ export default function MarkAttendancePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Subject</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={students.length > 0}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select subject" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {subjects.map(s => <SelectItem key={s.code} value={s.code}>{s.code} - {s.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                       <FormControl>
+                          <Input placeholder="e.g., DSTL or B.Tech" {...field} disabled={students.length > 0} />
+                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
