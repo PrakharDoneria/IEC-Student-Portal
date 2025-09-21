@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,10 +90,16 @@ export default function LoginPage() {
             />
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className='flex-col gap-4'>
           <Button onClick={handleLogin} disabled={loading} className="w-full">
             {loading ? 'Verifying...' : 'View My Attendance'}
           </Button>
+          <p className="text-sm text-center text-muted-foreground">
+              New student?{' '}
+              <Link href="/register" className="text-primary hover:underline">
+                Register here
+              </Link>
+            </p>
         </CardFooter>
       </Card>
     </main>

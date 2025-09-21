@@ -2,6 +2,7 @@ import type {
   Student,
   StudentAttendanceSummary,
   StudentAttendanceDetails,
+  NewStudent,
 } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
@@ -80,3 +81,37 @@ export const getStudentAttendanceDetails = async (rollNumber: string): Promise<S
     return null;
   }
 };
+
+export const addStudent = async (studentData: NewStudent): Promise<any> => {
+  if (!API_BASE_URL) {
+    throw new Error("API_BASE_URL is not defined in the environment.");
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/students/add_students`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([
+        {
+          name: studentData.name,
+          class: studentData.class,
+          mobile_number: studentData.mobile_number,
+          roll_number: studentData.roll_number,
+        },
+      ]),
+    });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || `Failed to add student. Status: ${res.status}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error('Error in addStudent:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('An unknown error occurred while adding the student.');
+  }
+}

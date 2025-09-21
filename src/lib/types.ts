@@ -7,6 +7,13 @@ export type Student = {
   avatarUrl: string; // Keep this for UI, can be a placeholder
 };
 
+export type NewStudent = {
+  name: string;
+  class: string;
+  roll_number: string;
+  mobile_number: string;
+}
+
 export type AttendanceRecord = {
   Date: string;
   Status: 'Present' | 'Absent';
