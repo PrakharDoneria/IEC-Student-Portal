@@ -3,6 +3,7 @@ import { PT_Sans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
+import { AppHeader } from '@/components/app-header';
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -23,7 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn('antialiased', ptSans.variable)}>
-        {children}
+        <div className="flex flex-col min-h-screen bg-background">
+          <AppHeader />
+          <main className="flex-1">{children}</main>
+        </div>
         <Toaster />
       </body>
     </html>
