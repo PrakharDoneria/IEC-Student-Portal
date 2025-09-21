@@ -3,13 +3,6 @@
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Table,
   TableBody,
   TableCell,
@@ -22,26 +15,33 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { StudentAttendanceSummaryView } from '@/components/student-attendance-summary';
-import type { Class, Student } from '@/lib/types';
+import type { Student } from '@/lib/types';
 import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Button } from './ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 type StudentRosterProps = {
-  classes: Class[];
   students: Student[];
   selectedClassId: string;
 };
 
 export function StudentRoster({
-  classes,
   students,
   selectedClassId,
 }: StudentRosterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [classId, setClassId] = useState(selectedClassId);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
-  const handleClassChange = (classId: string) => {
+  const handleViewRoster = () => {
+    if (!classId) {
+      toast({ title: 'Error', description: 'Please enter a class ID.', variant: 'destructive' });
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set('class', classId);
     router.push(`?${params.toString()}`);
@@ -64,27 +64,25 @@ export function StudentRoster({
     <>
       <Card>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Select value={selectedClassId} onValueChange={handleClassChange}>
-                <SelectTrigger className="w-[280px]">
-                  <SelectValue placeholder="Select a class" />
-                </SelectTrigger>
-                <SelectContent>
-                  {classes.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl items-end">
+            <div className="space-y-2">
+              <Label htmlFor="class-input">Class ID</Label>
+              <Input 
+                id="class-input" 
+                placeholder="e.g., 2C" 
+                value={classId} 
+                onChange={(e) => setClassId(e.target.value)} 
+              />
             </div>
-            <div className="w-full sm:w-auto">
+            <Button onClick={handleViewRoster} className="w-full md:w-auto">
+              View Roster
+            </Button>
+            <div className="w-full md:col-start-3">
               <Input
                 placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:w-[250px]"
+                className="w-full"
               />
             </div>
           </div>
@@ -132,7 +130,7 @@ export function StudentRoster({
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center">
-                      No students found for this class or search term.
+                      {selectedClassId ? `No students found for class "${selectedClassId}".` : 'Enter a class ID to view the roster.'}
                     </TableCell>
                   </TableRow>
                 )}

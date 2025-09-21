@@ -11,8 +11,7 @@ export default async function Home({
 }: {
   searchParams: { class?: string };
 }) {
-  const classes = await getClasses();
-  const selectedClassId = searchParams.class || (classes[0]?.id ?? '');
+  const selectedClassId = searchParams.class || '';
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -21,21 +20,21 @@ export default async function Home({
           Student Roster
         </h1>
         <p className="text-muted-foreground mt-1">
-          Select a class to view student details and attendance summaries.
+          Enter a class to view student details and attendance summaries.
         </p>
       </header>
       <main className="flex-1 p-6 overflow-auto">
         <Suspense fallback={<RosterSkeleton />}>
-          <RosterDataWrapper selectedClassId={selectedClassId} classes={classes} />
+          <RosterDataWrapper selectedClassId={selectedClassId} />
         </Suspense>
       </main>
     </div>
   );
 }
 
-async function RosterDataWrapper({ selectedClassId, classes }: { selectedClassId: string; classes: Class[] }) {
+async function RosterDataWrapper({ selectedClassId }: { selectedClassId: string; }) {
   const students = await getStudentsByClass(selectedClassId);
-  return <StudentRoster classes={classes} students={students} selectedClassId={selectedClassId} />;
+  return <StudentRoster students={students} selectedClassId={selectedClassId} />;
 }
 
 function RosterSkeleton() {
