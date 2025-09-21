@@ -175,19 +175,19 @@ export function StudentAttendanceSummaryView() {
                       <div className="text-3xl font-bold text-accent">
                         {summary.summary.presentDays}
                       </div>
-                      <div className="text-sm text-muted-foreground">Present Days</div>
+                      <div className="text-sm text-muted-foreground">Present Lectures</div>
                     </Card>
                     <Card className="flex flex-col items-center justify-center p-4">
                       <div className="text-3xl font-bold text-destructive">
                         {summary.summary.totalDays - summary.summary.presentDays}
                       </div>
-                      <div className="text-sm text-muted-foreground">Absent Days</div>
+                      <div className="text-sm text-muted-foreground">Absent Lectures</div>
                     </Card>
                      <Card className="flex flex-col items-center justify-center p-4">
                       <div className="text-3xl font-bold">
                         {summary.summary.totalDays}
                       </div>
-                      <div className="text-sm text-muted-foreground">Total Days</div>
+                      <div className="text-sm text-muted-foreground">Total Lectures</div>
                     </Card>
                   </div>
                 </div>
@@ -226,6 +226,7 @@ export function StudentAttendanceSummaryView() {
                         <TableHead>Date</TableHead>
                         {barChartData.map(subject => (
                           <TableHead key={subject.name} className="text-right">{subject.name}</TableHead>
+
                         ))}
                       </TableRow>
                     </TableHeader>
