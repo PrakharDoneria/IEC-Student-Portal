@@ -3,6 +3,7 @@ import type {
   StudentAttendanceSummary,
   StudentAttendanceDetails,
   NewStudent,
+  AttendanceMarking,
 } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
@@ -114,4 +115,30 @@ export const addStudent = async (studentData: NewStudent): Promise<any> => {
     }
     throw new Error('An unknown error occurred while adding the student.');
   }
-}
+};
+
+export const markAttendance = async (attendanceData: AttendanceMarking[]): Promise<any> => {
+  if (!API_BASE_URL) {
+    throw new Error("API_BASE_URL is not defined in the environment.");
+  }
+  try {
+    const res = await fetch(`${API_BASE_URL}/faculty/mark_attendance`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(attendanceData),
+    });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || `Failed to mark attendance. Status: ${res.status}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error('Error in markAttendance:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('An unknown error occurred while marking attendance.');
+  }
+};

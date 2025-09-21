@@ -59,3 +59,11 @@ export type StudentAttendanceDetails = {
     },
     attendanceRecords: { Date: string, [key:string]: string }[]
 }
+
+export type AttendanceMarking = {
+  Roll_Number: string;
+  Name: string;
+  Status: 'Present' | 'Absent';
+  Subject_Code: string;
+  Class_Number: string;
+};

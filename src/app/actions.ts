@@ -5,8 +5,9 @@ import {
   getStudentAttendanceSummary as getSummary,
   getStudentAttendanceDetails,
   addStudent as addNewStudent,
+  markAttendance as saveAttendance,
 } from '@/lib/data';
-import type { Student, StudentAttendanceSummary, NewStudent } from '@/lib/types';
+import type { Student, StudentAttendanceSummary, NewStudent, AttendanceMarking } from '@/lib/types';
 
 
 export async function getStudentAttendanceSummary(rollNumber: string): Promise<{ success: true; data: StudentAttendanceSummary } | { success: false; error: string }> {
@@ -56,6 +57,17 @@ export async function addStudent(studentData: NewStudent): Promise<{ success: tr
     return { success: false, error: response.message || 'Failed to add student.' };
   } catch (error) {
     console.error('Add Student Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    return { success: false, error: errorMessage };
+  }
+}
+
+export async function markAttendance(attendanceData: AttendanceMarking[]): Promise<{ success: true; data: any } | { success: false; error: string }> {
+  try {
+    const response = await saveAttendance(attendanceData);
+    return { success: true, data: response };
+  } catch (error) {
+    console.error('Mark Attendance Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
     return { success: false, error: errorMessage };
   }

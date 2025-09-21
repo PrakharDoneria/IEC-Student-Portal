@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from './ui/button';
-import { LogOut, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard, PenSquare } from 'lucide-react';
 
 const FACULTY_SECURITY_CODE = 'Attend@IEC@ieccollege.com';
 
@@ -57,7 +57,12 @@ export function FacultyHeader() {
                     Dashboard
                 </Link>
             </Button>
-            {/* Add more faculty nav links here */}
+             <Button variant={pathname === '/faculty/mark-attendance' ? 'secondary' : 'ghost'} asChild>
+                <Link href="/faculty/mark-attendance" className="flex items-center gap-2">
+                    <PenSquare />
+                    Mark Attendance
+                </Link>
+            </Button>
             <Button variant="outline" onClick={handleLogout}>
                 <LogOut />
                 Logout
