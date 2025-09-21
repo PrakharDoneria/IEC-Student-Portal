@@ -59,8 +59,8 @@ export default function LoginPage() {
           src="/logo.png" 
           alt="College Banner" 
           width={1200} 
-          height={200} 
-          className="w-full object-cover"
+          height={100} 
+          className="w-full object-contain"
           priority
         />
       </div>

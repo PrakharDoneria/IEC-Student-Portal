@@ -13,8 +13,8 @@ export default function SummaryPage() {
             src="/logo.png" 
             alt="College Banner" 
             width={1200} 
-            height={200} 
-            className="w-full object-cover"
+            height={100} 
+            className="w-full object-contain"
             priority
           />
         <div className="flex items-center justify-between p-4 border-b bg-card">
