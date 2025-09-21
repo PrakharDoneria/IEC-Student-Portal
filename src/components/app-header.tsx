@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -36,6 +37,7 @@ interface BeforeInstallPromptEvent extends Event {
 export function AppHeader() {
   const [studentName, setStudentName] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
@@ -52,6 +54,12 @@ export function AppHeader() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
+
+  useEffect(() => {
+    if (installPrompt) {
+      setShowInstallButton(true);
+    }
+  }, [installPrompt]);
 
   useEffect(() => {
     const rollNumber = localStorage.getItem('studentRollNumber');
@@ -101,6 +109,7 @@ export function AppHeader() {
       toast({ title: 'Success', description: 'App installed successfully!' });
     }
     setInstallPrompt(null);
+    setShowInstallButton(false);
   };
   
   // Don't render header on login, register, or faculty pages
@@ -113,7 +122,7 @@ export function AppHeader() {
     { href: '/calculator', label: 'Calculator', icon: <Calculator /> },
   ];
 
-  const installButton = installPrompt && (
+  const installButton = showInstallButton && (
       <Button variant="outline" onClick={handleInstallClick}>
           <Download />
           Install App
@@ -193,7 +202,7 @@ export function AppHeader() {
             </Sheet>
         </div>
       </div>
-       {pathname === '/summary' && installPrompt && (
+       {pathname === '/summary' && showInstallButton && (
         <Alert className="md:hidden m-4 mt-4">
           <Download className="h-4 w-4" />
           <AlertTitle>Get the App!</AlertTitle>
