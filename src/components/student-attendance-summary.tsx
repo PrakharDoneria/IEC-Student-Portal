@@ -31,6 +31,7 @@ import { getStudentAttendanceSummary } from '@/app/actions';
 import type { StudentAttendanceSummary } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const chartConfig = {
   present: {
@@ -174,7 +175,7 @@ export function StudentAttendanceSummaryView() {
                       <div className="text-2xl font-bold text-accent">
                         {summary.summary.presentDays}
                       </div>
-                      <div className="text-sm text-muted-foreground">Present</div>
+                      <div className="text-sm text-muted-foreground">Present Lectures</div>
                     </Card>
                     <Card className="flex flex-col items-center justify-center p-4">
                       <div className="text-2xl font-bold text-destructive">
@@ -186,7 +187,7 @@ export function StudentAttendanceSummaryView() {
                       <div className="text-2xl font-bold">
                         {summary.summary.totalDays}
                       </div>
-                      <div className="text-sm text-muted-foreground">Total</div>
+                      <div className="text-sm text-muted-foreground">Total Lectures</div>
                     </Card>
                   </div>
               </CardContent>
