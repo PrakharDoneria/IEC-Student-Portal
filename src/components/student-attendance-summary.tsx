@@ -118,14 +118,14 @@ export function StudentAttendanceSummaryView() {
 
   return (
     <ScrollArea className="h-full">
-      <div className="py-6 md:py-6">
-          <div className="flex items-center gap-4 mb-6">
+      <div className="p-4 md:p-6 space-y-6">
+          <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
               <AvatarFallback>{summary.student.Name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
               <h2 className="text-2xl font-bold">{summary.student.Name}</h2>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Roll No: {summary.student.Roll_Number} | Class: {summary.student.Class_Number}
               </p>
             </div>
@@ -136,12 +136,11 @@ export function StudentAttendanceSummaryView() {
               <CardHeader>
                 <CardTitle>Attendance Overview</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-1 flex items-center justify-center">
+              <CardContent className="flex flex-col md:flex-row items-center gap-6">
+                 <div className="w-full md:w-1/3 flex justify-center">
                     <ChartContainer
                       config={chartConfig}
-                      className="mx-auto aspect-square h-[120px] sm:h-[150px]"
+                      className="mx-auto aspect-square h-[150px]"
                     >
                       <ResponsiveContainer>
                         <PieChart>
@@ -164,33 +163,32 @@ export function StudentAttendanceSummaryView() {
                       </ResponsiveContainer>
                     </ChartContainer>
                   </div>
-                  <div className="md:col-span-2 grid grid-cols-2 gap-4 text-center">
+                  <div className="w-full md:w-2/3 grid grid-cols-2 gap-4 text-center">
                     <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-2xl md:text-3xl font-bold">
+                      <div className="text-2xl font-bold">
                         {summary.summary.overallPercentage}
                       </div>
-                      <div className="text-xs md:text-sm text-muted-foreground">Overall</div>
+                      <div className="text-sm text-muted-foreground">Overall</div>
                     </Card>
                     <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-2xl md:text-3xl font-bold text-accent">
+                      <div className="text-2xl font-bold text-accent">
                         {summary.summary.presentDays}
                       </div>
-                      <div className="text-xs md:text-sm text-muted-foreground">Present</div>
+                      <div className="text-sm text-muted-foreground">Present</div>
                     </Card>
                     <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-2xl md:text-3xl font-bold text-destructive">
+                      <div className="text-2xl font-bold text-destructive">
                         {summary.summary.totalDays - summary.summary.presentDays}
                       </div>
-                      <div className="text-xs md:text-sm text-muted-foreground">Absent</div>
+                      <div className="text-sm text-muted-foreground">Absent</div>
                     </Card>
                      <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-2xl md:text-3xl font-bold">
+                      <div className="text-2xl font-bold">
                         {summary.summary.totalDays}
                       </div>
-                      <div className="text-xs md:text-sm text-muted-foreground">Total</div>
+                      <div className="text-sm text-muted-foreground">Total</div>
                     </Card>
                   </div>
-                </div>
               </CardContent>
             </Card>
 
@@ -201,7 +199,7 @@ export function StudentAttendanceSummaryView() {
               <CardContent>
                 <ChartContainer config={chartConfig} className="h-[250px] w-full">
                   <ResponsiveContainer>
-                    <BarChart data={barChartData}>
+                    <BarChart data={barChartData} margin={{ top: 20, right: 0, left: -20, bottom: 5 }}>
                       <CartesianGrid vertical={false} />
                       <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
                       <YAxis domain={[0, 100]} unit="%" />
@@ -219,13 +217,13 @@ export function StudentAttendanceSummaryView() {
                 <CardDescription>Last 20 records</CardDescription>
               </CardHeader>
               <CardContent>
-                 <div className="border rounded-md overflow-x-auto">
+                 <div className="border rounded-md overflow-hidden">
                   <Table className="hidden md:table">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
                         {barChartData.map(subject => (
-                          <TableHead key={subject.name} className="text-right">{subject.name}</TableHead>
+                          <TableHead key={subject.name} className="text-center">{subject.name}</TableHead>
 
                         ))}
                       </TableRow>
@@ -233,12 +231,12 @@ export function StudentAttendanceSummaryView() {
                     <TableBody>
                       {summary.attendanceRecords.slice(0, 20).map((record) => (
                         <TableRow key={record.Date}>
-                          <TableCell>{record.Date}</TableCell>
+                          <TableCell className="font-medium">{record.Date}</TableCell>
                            {barChartData.map(subject => (
-                            <TableCell key={subject.name} className="text-right">
+                            <TableCell key={subject.name} className="text-center">
                               <Badge
                                 variant={getStatusForSubject(record, subject.name) === 'Present' ? 'default' : getStatusForSubject(record, subject.name) === 'Absent' ? 'destructive' : 'secondary'}
-                                className={getStatusForSubject(record, subject.name) === 'Present' ? 'bg-accent' : ''}
+                                className={cn('w-20 justify-center', getStatusForSubject(record, subject.name) === 'Present' ? 'bg-accent' : '')}
                               >
                                 {getStatusForSubject(record, subject.name)}
                               </Badge>
@@ -258,7 +256,7 @@ export function StudentAttendanceSummaryView() {
                                         <span className="text-muted-foreground">{subject.name}</span>
                                         <Badge
                                             variant={getStatusForSubject(record, subject.name) === 'Present' ? 'default' : getStatusForSubject(record, subject.name) === 'Absent' ? 'destructive' : 'secondary'}
-                                            className={getStatusForSubject(record, subject.name) === 'Present' ? 'bg-accent' : ''}
+                                            className={cn('w-20 justify-center', getStatusForSubject(record, subject.name) === 'Present' ? 'bg-accent' : '')}
                                         >
                                             {getStatusForSubject(record, subject.name)}
                                         </Badge>
@@ -280,8 +278,8 @@ export function StudentAttendanceSummaryView() {
 
 function SummarySkeleton() {
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="space-y-6 p-4 md:p-6">
+      <div className="flex items-center gap-4">
         <Skeleton className="h-16 w-16 rounded-full" />
         <div className="space-y-2">
             <Skeleton className="h-6 w-48" />
@@ -292,17 +290,15 @@ function SummarySkeleton() {
         <CardHeader>
           <Skeleton className="h-6 w-48" />
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-1 flex items-center justify-center">
-              <Skeleton className="h-[150px] w-[150px] rounded-full" />
-            </div>
-            <div className="md:col-span-2 grid grid-cols-2 gap-4">
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </div>
+        <CardContent className="flex flex-col md:flex-row items-center gap-6">
+          <div className="w-full md:w-1/3 flex justify-center">
+             <Skeleton className="h-[150px] w-[150px] rounded-full" />
+          </div>
+          <div className="w-full md:w-2/3 grid grid-cols-2 gap-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
           </div>
         </CardContent>
       </Card>
@@ -321,9 +317,9 @@ function SummarySkeleton() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
           </div>
         </CardContent>
       </Card>
