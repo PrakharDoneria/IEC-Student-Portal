@@ -1,4 +1,3 @@
-import { getClasses } from '@/lib/data';
 import { AttendanceMarker } from '@/components/attendance-marker';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,21 +10,16 @@ export default async function AttendancePage() {
           Mark Attendance
         </h1>
         <p className="text-muted-foreground mt-1">
-          Select a class to load the roster and mark attendance.
+          Enter a class and subject to load the roster and mark attendance.
         </p>
       </header>
       <main className="flex-1 p-6 overflow-auto">
         <Suspense fallback={<AttendanceSkeleton />}>
-          <AttendanceDataWrapper />
+          <AttendanceMarker />
         </Suspense>
       </main>
     </div>
   );
-}
-
-async function AttendanceDataWrapper() {
-  const classes = await getClasses();
-  return <AttendanceMarker classes={classes} />;
 }
 
 function AttendanceSkeleton() {

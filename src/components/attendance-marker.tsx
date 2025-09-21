@@ -1,14 +1,7 @@
 "use client";
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -25,7 +18,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { fetchStudentsForClass, submitAttendance } from '@/app/actions';
-import type { Class } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
 type FormValues = {
@@ -37,17 +29,9 @@ type FormValues = {
   }[];
 };
 
-const subjects = [
-    { id: 'DSTL', name: 'Data Structures & Algorithms' },
-    { id: 'COA', name: 'Computer Organization & Architecture' },
-    { id: 'DBMS', name: 'Database Management Systems' },
-    { id: 'OS', name: 'Operating Systems' },
-    { id: 'CN', name: 'Computer Networks' },
-]
-
-export function AttendanceMarker({ classes }: { classes: Class[] }) {
-  const [selectedClassId, setSelectedClassId] = useState<string | undefined>(classes[0]?.id);
-  const [selectedSubject, setSelectedSubject] = useState<string | undefined>(subjects[0]?.id);
+export function AttendanceMarker() {
+  const [classId, setClassId] = useState<string>('');
+  const [subject, setSubject] = useState<string>('');
   const [isLoading, startLoading] = useTransition();
   const [isSubmitting, startSubmitting] = useTransition();
   const { toast } = useToast();
@@ -64,13 +48,13 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
   });
 
   const handleLoadRoster = () => {
-    if (!selectedClassId) {
-      toast({ title: 'Error', description: 'Please select a class first.', variant: 'destructive' });
+    if (!classId) {
+      toast({ title: 'Error', description: 'Please enter a class ID.', variant: 'destructive' });
       return;
     }
 
     startLoading(async () => {
-      const result = await fetchStudentsForClass(selectedClassId);
+      const result = await fetchStudentsForClass(classId);
       if (result.success && result.data) {
         const students = result.data.map(student => ({
           Roll_Number: student.Roll_Number,
@@ -81,6 +65,8 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
         replace(students);
         if (students.length > 0) {
             toast({ title: 'Success', description: 'Roster loaded.' });
+        } else {
+            toast({ title: 'No Students', description: 'No students found for this class.', variant: 'destructive' });
         }
       } else {
         toast({ title: 'Error', description: result.error, variant: 'destructive' });
@@ -89,29 +75,17 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
     });
   };
 
-  useEffect(() => {
-    if (selectedClassId) {
-      handleLoadRoster();
-    } else {
-      replace([]);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedClassId]);
-
-
   const onSubmit = (data: FormValues) => {
-    if (!selectedClassId || !selectedSubject) {
-        toast({ title: 'Error', description: 'Please select a class and subject.', variant: 'destructive' });
+    if (!classId || !subject) {
+        toast({ title: 'Error', description: 'Please enter a class and subject.', variant: 'destructive' });
         return;
     }
 
     startSubmitting(async () => {
       const payload = data.attendance.map(({ Roll_Number, Name, Status }) => ({ Roll_Number, Name, Status }));
-      const result = await submitAttendance(selectedClassId, selectedSubject, payload);
+      const result = await submitAttendance(classId, subject, payload);
       if (result.success) {
         toast({ title: 'Attendance Submitted', description: result.message });
-        // Optionally clear the roster or keep it for review
-        // replace([]); 
       } else {
         toast({ title: 'Submission Failed', description: result.error, variant: 'destructive' });
       }
@@ -122,41 +96,23 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Select Class & Subject</CardTitle>
-          <CardDescription>Choose a class and subject to mark attendance.</CardDescription>
+          <CardTitle>Enter Class & Subject</CardTitle>
+          <CardDescription>Enter a class ID and subject to mark attendance, then load the roster.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl items-end">
               <div className="space-y-2">
-                <Label htmlFor="class-select">Class</Label>
-                <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-                  <SelectTrigger id="class-select">
-                    <SelectValue placeholder="Select a class" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {classes.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="class-input">Class ID</Label>
+                <Input id="class-input" placeholder="e.g., 2C" value={classId} onChange={(e) => setClassId(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="subject-select">Subject</Label>
-                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                  <SelectTrigger id="subject-select">
-                    <SelectValue placeholder="Select a subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name} ({s.id})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="subject-input">Subject Code</Label>
+                <Input id="subject-input" placeholder="e.g., DSTL" value={subject} onChange={(e) => setSubject(e.target.value)} />
               </div>
+              <Button onClick={handleLoadRoster} disabled={isLoading || !classId}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Load Roster
+              </Button>
             </div>
         </CardContent>
       </Card>
@@ -167,7 +123,7 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
         <Card>
           <CardHeader>
             <CardTitle>Mark Attendance</CardTitle>
-            <CardDescription>Mark each student as present or absent for {selectedSubject}.</CardDescription>
+            <CardDescription>Mark each student as present or absent for {subject}.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -222,7 +178,7 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
                 </Table>
               </div>
               <div className="flex justify-end mt-6">
-                <Button type="submit" disabled={isSubmitting || !selectedSubject}>
+                <Button type="submit" disabled={isSubmitting || !subject}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Submit Attendance
                 </Button>
@@ -232,10 +188,10 @@ export function AttendanceMarker({ classes }: { classes: Class[] }) {
         </Card>
       )}
 
-      {!isLoading && fields.length === 0 && selectedClassId &&(
+      {!isLoading && fields.length === 0 && classId && (
          <Card>
             <CardContent className="p-10 text-center">
-                <p className="text-muted-foreground">No students found for the selected class.</p>
+                <p className="text-muted-foreground">Roster has been loaded, but no students were found for the selected class.</p>
             </CardContent>
          </Card>
       )}
