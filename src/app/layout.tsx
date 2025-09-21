@@ -4,6 +4,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { AppHeader } from '@/components/app-header';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -25,11 +26,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn('antialiased', ptSans.variable)}>
-        <div className="flex flex-col min-h-screen bg-background">
-          <AppHeader />
-          <main className="flex-1 pb-20 md:pb-0">{children}</main>
-        </div>
-        <Toaster />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="flex flex-col min-h-screen bg-background">
+            <AppHeader />
+            <main className="flex-1 pb-20 md:pb-0">{children}</main>
+          </div>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

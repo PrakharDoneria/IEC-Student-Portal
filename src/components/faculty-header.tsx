@@ -8,6 +8,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Button } from './ui/button';
 import { LogOut, LayoutDashboard, PenSquare, FileDown, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
+import { ThemeToggle } from './theme-toggle';
 
 const FACULTY_SECURITY_CODE = 'Attend@IEC@ieccollege.com';
 
@@ -69,6 +70,7 @@ export function FacultyHeader() {
                     </Link>
                 </Button>
             ))}
+            <ThemeToggle />
             <Button variant="outline" onClick={handleLogout}>
                 <LogOut />
                 Logout
@@ -108,6 +110,10 @@ export function FacultyHeader() {
                                     </Button>
                                 </SheetClose>
                             ))}
+                             <div className="flex justify-between items-center p-2">
+                                <span>Switch Theme</span>
+                                <ThemeToggle />
+                             </div>
                         </nav>
                         <Button variant="destructive" onClick={handleLogout}>
                             <LogOut />

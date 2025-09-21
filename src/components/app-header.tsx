@@ -18,6 +18,7 @@ import { Menu, User, Calculator, LayoutDashboard, LogOut, MoreHorizontal, Downlo
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { ThemeToggle } from './theme-toggle';
 
 type NavLink = {
     href: string;
@@ -156,6 +157,7 @@ export function AppHeader() {
                   </Button>
               ))}
               {installButton}
+              <ThemeToggle />
               <Button variant="outline" onClick={handleLogout}>
                   <LogOut />
                   Logout
@@ -193,6 +195,10 @@ export function AppHeader() {
                                 <p className='text-sm text-muted-foreground'>IEC Student Portal</p>
                         </div>
                          {installButton}
+                         <div className="flex justify-between items-center">
+                            <span>Switch Theme</span>
+                            <ThemeToggle />
+                         </div>
                         <Button variant="destructive" onClick={handleLogout}>
                             <LogOut />
                             Logout
