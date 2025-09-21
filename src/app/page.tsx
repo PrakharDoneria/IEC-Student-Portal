@@ -54,13 +54,13 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
-      <div className="absolute top-0 left-0 right-0">
+      <div className="w-full max-w-sm mx-auto mb-4">
         <Image 
           src="/logo.png" 
           alt="College Banner" 
-          width={1200} 
-          height={100} 
-          className="w-full object-contain"
+          width={475} 
+          height={90} 
+          className="w-full h-auto object-contain"
           priority
         />
       </div>
