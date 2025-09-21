@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addStudent } from '@/app/actions';
 import type { NewStudent } from '@/lib/types';
 import Image from 'next/image';
+import { AlertCircle } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -25,8 +26,15 @@ const formSchema = z.object({
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
+  const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (localStorage.getItem('hasRegistered')) {
+      setIsAlreadyRegistered(true);
+    }
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,6 +50,7 @@ export default function RegisterPage() {
     setLoading(true);
     const result = await addStudent(values);
     if (result.success) {
+      localStorage.setItem('hasRegistered', 'true');
       toast({
         title: 'Registration Successful',
         description: `Student ${result.data.Name} has been added.`,
@@ -81,65 +90,78 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="class"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Class</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., 2C" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="roll_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Roll Number</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="e.g., 2400900100104" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="mobile_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mobile Number</FormLabel>
-                    <FormControl>
-                      <Input type="tel" placeholder="e.g., 9876543210" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Registering...' : 'Register Student'}
-              </Button>
-            </form>
-          </Form>
+          {isAlreadyRegistered ? (
+            <div className="flex flex-col items-center text-center p-4 bg-muted/50 rounded-lg">
+                <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+                <h3 className="text-lg font-semibold">Registration Limit Reached</h3>
+                <p className="text-muted-foreground text-sm">
+                    Only one student can be registered per device.
+                </p>
+                 <Button asChild variant="link" className="mt-4">
+                    <Link href="/">Go to Login</Link>
+                </Button>
+            </div>
+          ) : (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., John Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="class"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Class</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., 2C" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="roll_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Roll Number</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 2400900100104" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="mobile_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mobile Number</FormLabel>
+                      <FormControl>
+                        <Input type="tel" placeholder="e.g., 9876543210" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={loading} className="w-full">
+                  {loading ? 'Registering...' : 'Register Student'}
+                </Button>
+              </form>
+            </Form>
+          )}
         </CardContent>
          <CardFooter className="flex justify-center">
             <p className="text-sm text-center text-muted-foreground">
