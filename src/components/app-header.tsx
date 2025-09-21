@@ -139,8 +139,6 @@ export function AppHeader() {
             </Sheet>
         </div>
       </div>
-       {/* Add padding to the bottom of the main content to avoid overlap with bottom nav */}
-      <div className="pb-16 md:pb-0"></div>
     </>
   );
 }

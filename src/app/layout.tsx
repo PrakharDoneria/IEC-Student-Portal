@@ -27,7 +27,7 @@ export default function RootLayout({
       <body className={cn('antialiased', ptSans.variable)}>
         <div className="flex flex-col min-h-screen bg-background">
           <AppHeader />
-          <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          <main className="flex-1 pb-16 md:pb-0 px-4">{children}</main>
         </div>
         <Toaster />
       </body>

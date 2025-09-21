@@ -118,7 +118,7 @@ export function StudentAttendanceSummaryView() {
 
   return (
     <ScrollArea className="h-full">
-      <div className="p-4 md:p-6">
+      <div className="py-6 md:py-6">
           <div className="flex items-center gap-4 mb-6">
             <Avatar className="h-16 w-16">
               <AvatarFallback>{summary.student.Name.charAt(0)}</AvatarFallback>
@@ -164,30 +164,30 @@ export function StudentAttendanceSummaryView() {
                       </ResponsiveContainer>
                     </ChartContainer>
                   </div>
-                  <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                  <div className="md:col-span-2 grid grid-cols-2 gap-4 text-center">
                     <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-3xl font-bold">
+                      <div className="text-2xl md:text-3xl font-bold">
                         {summary.summary.overallPercentage}
                       </div>
-                      <div className="text-sm text-muted-foreground text-center">Overall</div>
+                      <div className="text-xs md:text-sm text-muted-foreground">Overall</div>
                     </Card>
                     <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-3xl font-bold text-accent">
+                      <div className="text-2xl md:text-3xl font-bold text-accent">
                         {summary.summary.presentDays}
                       </div>
-                      <div className="text-sm text-muted-foreground text-center">Present Lectures</div>
+                      <div className="text-xs md:text-sm text-muted-foreground">Present</div>
                     </Card>
                     <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-3xl font-bold text-destructive">
+                      <div className="text-2xl md:text-3xl font-bold text-destructive">
                         {summary.summary.totalDays - summary.summary.presentDays}
                       </div>
-                      <div className="text-sm text-muted-foreground text-center">Absent Lectures</div>
+                      <div className="text-xs md:text-sm text-muted-foreground">Absent</div>
                     </Card>
                      <Card className="flex flex-col items-center justify-center p-4">
-                      <div className="text-3xl font-bold">
+                      <div className="text-2xl md:text-3xl font-bold">
                         {summary.summary.totalDays}
                       </div>
-                      <div className="text-sm text-muted-foreground text-center">Total Lectures</div>
+                      <div className="text-xs md:text-sm text-muted-foreground">Total</div>
                     </Card>
                   </div>
                 </div>
