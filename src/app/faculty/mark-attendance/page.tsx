@@ -19,7 +19,8 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const attendanceFormSchema = z.object({
-  classId: z.string({ required_error: 'Please select a class.' }),
+  year: z.string({ required_error: 'Please select a year.' }),
+  section: z.string({ required_error: 'Please select a section.' }),
   subjectCode: z.string().min(1, 'Subject name cannot be empty.'),
   students: z.array(z.object({
     rollNumber: z.string(),
@@ -52,15 +53,18 @@ export default function MarkAttendancePage() {
   });
 
   const handleFetchStudents = async () => {
-    const { classId, subjectCode } = form.getValues();
-    if (!classId) {
-      toast({ title: 'Please select a class first.', variant: 'destructive' });
+    const { year, section, subjectCode } = form.getValues();
+    if (!year || !section) {
+      toast({ title: 'Please select a year and section.', variant: 'destructive' });
       return;
     }
      if (!subjectCode) {
       toast({ title: 'Please enter a subject name.', variant: 'destructive' });
       return;
     }
+    
+    const classId = `${year}${section}`;
+
     setLoading(true);
     setStudents([]);
     replace([]);
@@ -107,7 +111,7 @@ export default function MarkAttendancePage() {
   const resetFormState = () => {
     setStudents([]);
     replace([]);
-    form.reset({ classId: undefined, subjectCode: '', students: [] });
+    form.reset({ year: undefined, section: undefined, subjectCode: '', students: [] });
     setSelectedClass(null);
     setSelectedSubject(null);
   }
@@ -122,21 +126,44 @@ export default function MarkAttendancePage() {
               <CardDescription>Select a class and subject to mark daily attendance.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <FormField
                   control={form.control}
-                  name="classId"
+                  name="year"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Class</FormLabel>
+                      <FormLabel>Year</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={students.length > 0}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select class" />
+                            <SelectValue placeholder="Select Year" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {['2A', '2B', '2C', '2D', '2E', '2F', '2G'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                          <SelectItem value="1">1st Year</SelectItem>
+                          <SelectItem value="2">2nd Year</SelectItem>
+                          <SelectItem value="3">3rd Year</SelectItem>
+                          <SelectItem value="4">4th Year</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="section"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Section</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={students.length > 0}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Section" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(c => <SelectItem key={c} value={c}>Section {c}</SelectItem>)}
                         </SelectContent>
                       </Select>
                       <FormMessage />
