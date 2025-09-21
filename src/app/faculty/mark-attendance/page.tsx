@@ -58,9 +58,13 @@ export default function MarkAttendancePage() {
   });
 
   const handleFetchStudents = async () => {
-    const { classId } = form.getValues();
+    const { classId, subjectCode } = form.getValues();
     if (!classId) {
       toast({ title: 'Please select a class first.', variant: 'destructive' });
+      return;
+    }
+     if (!subjectCode) {
+      toast({ title: 'Please select a subject first.', variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -70,11 +74,10 @@ export default function MarkAttendancePage() {
     const result = await fetchStudentsForClass(classId);
     if (result.success) {
       setStudents(result.data);
-      // Populate the form array with default values
       const studentFields = result.data.map(s => ({ rollNumber: s.Roll_Number, name: s.Name, status: 'Present' as const }));
       replace(studentFields);
       setSelectedClass(classId);
-      setSelectedSubject(form.getValues('subjectCode'));
+      setSelectedSubject(subjectCode);
     } else {
       toast({ title: 'Error', description: result.error, variant: 'destructive' });
     }
@@ -103,137 +106,147 @@ export default function MarkAttendancePage() {
       setStudents([]);
       replace([]);
       form.reset();
+      setSelectedClass(null);
+      setSelectedSubject(null);
     } else {
       toast({ title: 'Error', description: result.error, variant: 'destructive' });
     }
     setSubmitting(false);
   }
 
+  const resetFormState = () => {
+    setStudents([]);
+    replace([]);
+    form.reset();
+    setSelectedClass(null);
+    setSelectedSubject(null);
+  }
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Mark Attendance</CardTitle>
-          <CardDescription>Select a class and subject to mark daily attendance.</CardDescription>
-        </CardHeader>
-        <CardContent>
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <FormField
-                control={form.control}
-                name="classId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Class</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={students.length > 0}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select class" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                         {['2A', '2B', '2C', '2D', '2E', '2F', '2G'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="subjectCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subject</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={students.length > 0}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select subject" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                         {subjects.map(s => <SelectItem key={s.code} value={s.code}>{s.code} - {s.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button onClick={handleFetchStudents} disabled={loading || students.length > 0}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Fetching...</> : 'Fetch Students'}
-              </Button>
-            </div>
-        </CardContent>
-      </Card>
-
-      {students.length > 0 && (
-         <Card>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card>
             <CardHeader>
-                <div className='flex justify-between items-center'>
-                    <div>
-                        <CardTitle>Student List</CardTitle>
-                        <CardDescription>Mark each student as Present or Absent for {selectedSubject} in class {selectedClass}.</CardDescription>
-                    </div>
-                    <Button variant='outline' onClick={() => { setStudents([]); replace([]); }}>Change Class/Subject</Button>
-                </div>
+              <CardTitle>Mark Attendance</CardTitle>
+              <CardDescription>Select a class and subject to mark daily attendance.</CardDescription>
             </CardHeader>
             <CardContent>
-                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="border rounded-md">
-                            <Table>
-                                <TableHeader>
-                                <TableRow>
-                                    <TableHead>Roll Number</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead className="text-right">Status</TableHead>
-                                </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                {fields.map((field, index) => (
-                                    <TableRow key={field.id}>
-                                    <TableCell>{students[index].Roll_Number}</TableCell>
-                                    <TableCell>{students[index].Name}</TableCell>
-                                    <TableCell className="text-right">
-                                        <FormField
-                                        control={form.control}
-                                        name={`students.${index}.status`}
-                                        render={({ field }) => (
-                                            <FormControl>
-                                            <RadioGroup
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                                className="flex justify-end gap-4"
-                                            >
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl>
-                                                        <RadioGroupItem value="Present" id={`present-${index}`} />
-                                                    </FormControl>
-                                                    <FormLabel htmlFor={`present-${index}`} className={cn(field.value === 'Present' && 'text-accent')}>Present</FormLabel>
-                                                </FormItem>
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl>
-                                                        <RadioGroupItem value="Absent" id={`absent-${index}`} />
-                                                    </FormControl>
-                                                     <FormLabel htmlFor={`absent-${index}`} className={cn(field.value === 'Absent' && 'text-destructive')}>Absent</FormLabel>
-                                                </FormItem>
-                                            </RadioGroup>
-                                            </FormControl>
-                                        )}
-                                        />
-                                    </TableCell>
-                                    </TableRow>
-                                ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                        <Button type="submit" disabled={submitting} className="w-full md:w-auto">
-                            {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : 'Submit Attendance'}
-                        </Button>
-                    </form>
-                </Form>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <FormField
+                  control={form.control}
+                  name="classId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Class</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={students.length > 0}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select class" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {['2A', '2B', '2C', '2D', '2E', '2F', '2G'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="subjectCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subject</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={students.length > 0}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select subject" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {subjects.map(s => <SelectItem key={s.code} value={s.code}>{s.code} - {s.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="button" onClick={handleFetchStudents} disabled={loading || students.length > 0}>
+                  {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Fetching...</> : 'Fetch Students'}
+                </Button>
+              </div>
             </CardContent>
-         </Card>
-      )}
+          </Card>
+
+          {students.length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className='flex justify-between items-center'>
+                  <div>
+                    <CardTitle>Student List</CardTitle>
+                    <CardDescription>Mark each student as Present or Absent for {selectedSubject} in class {selectedClass}.</CardDescription>
+                  </div>
+                  <Button variant='outline' type="button" onClick={resetFormState}>Change Class/Subject</Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Roll Number</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead className="text-right">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {fields.map((field, index) => (
+                        <TableRow key={field.id}>
+                          <TableCell>{students[index].Roll_Number}</TableCell>
+                          <TableCell>{students[index].Name}</TableCell>
+                          <TableCell className="text-right">
+                            <FormField
+                              control={form.control}
+                              name={`students.${index}.status`}
+                              render={({ field }) => (
+                                <FormControl>
+                                  <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex justify-end gap-4"
+                                  >
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="Present" id={`present-${index}`} />
+                                      </FormControl>
+                                      <FormLabel htmlFor={`present-${index}`} className={cn("font-normal cursor-pointer", field.value === 'Present' && 'text-accent')}>Present</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="Absent" id={`absent-${index}`} />
+                                      </FormControl>
+                                      <FormLabel htmlFor={`absent-${index}`} className={cn("font-normal cursor-pointer", field.value === 'Absent' && 'text-destructive')}>Absent</FormLabel>
+                                    </FormItem>
+                                  </RadioGroup>
+                                </FormControl>
+                              )}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <Button type="submit" disabled={submitting} className="w-full md:w-auto mt-6">
+                  {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : 'Submit Attendance'}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </form>
+      </Form>
     </div>
   );
 }
