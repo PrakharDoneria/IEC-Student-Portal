@@ -14,6 +14,7 @@ const ptSans = PT_Sans({
 export const metadata: Metadata = {
   title: 'IEC Student Portal',
   description: 'View your attendance summary.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
