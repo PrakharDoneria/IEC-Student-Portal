@@ -24,11 +24,34 @@ type NavLink = {
     icon: React.ReactNode;
 }
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 export function AppHeader() {
   const [studentName, setStudentName] = useState<string | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   useEffect(() => {
     const rollNumber = localStorage.getItem('studentRollNumber');
@@ -62,13 +85,23 @@ export function AppHeader() {
     router.push('/');
   };
   
-  const showInstallPrompt = () => {
-    toast({
-      title: "How to Install App",
-      description: "To install the app, open your browser's menu and look for the 'Add to Home Screen' or 'Install App' option.",
-      duration: 10000,
-    });
-  }
+  const handleInstallClick = async () => {
+    if (!installPrompt) {
+      // Fallback for browsers that don't support the prompt
+       toast({
+        title: "How to Install App",
+        description: "To install the app, open your browser's menu and look for the 'Add to Home Screen' or 'Install App' option.",
+        duration: 10000,
+      });
+      return;
+    }
+    await installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') {
+      toast({ title: 'Success', description: 'App installed successfully!' });
+    }
+    setInstallPrompt(null);
+  };
   
   // Don't render header on login, register, or faculty pages
   if (pathname === '/' || pathname === '/register' || pathname.startsWith('/faculty')) return null;
@@ -79,6 +112,13 @@ export function AppHeader() {
     { href: '/profile', label: 'Profile', icon: <User /> },
     { href: '/calculator', label: 'Calculator', icon: <Calculator /> },
   ];
+
+  const installButton = installPrompt && (
+      <Button variant="outline" onClick={handleInstallClick}>
+          <Download />
+          Install App
+      </Button>
+  );
 
   return (
     <>
@@ -106,10 +146,7 @@ export function AppHeader() {
                       </Link>
                   </Button>
               ))}
-              <Button variant="outline" onClick={showInstallPrompt}>
-                <Download />
-                Install App
-              </Button>
+              {installButton}
               <Button variant="outline" onClick={handleLogout}>
                   <LogOut />
                   Logout
@@ -146,10 +183,7 @@ export function AppHeader() {
                                 <p className='font-bold text-lg'>{studentName || 'Student'}</p>
                                 <p className='text-sm text-muted-foreground'>IEC Student Portal</p>
                         </div>
-                         <Button variant="outline" onClick={showInstallPrompt}>
-                            <Download />
-                            Install App
-                        </Button>
+                         {installButton}
                         <Button variant="destructive" onClick={handleLogout}>
                             <LogOut />
                             Logout
@@ -159,13 +193,13 @@ export function AppHeader() {
             </Sheet>
         </div>
       </div>
-       {pathname === '/summary' && (
+       {pathname === '/summary' && installPrompt && (
         <Alert className="md:hidden m-4 mt-4">
           <Download className="h-4 w-4" />
           <AlertTitle>Get the App!</AlertTitle>
           <AlertDescription>
             For a better experience, add this app to your home screen.
-            <Button variant="link" size="sm" onClick={showInstallPrompt} className="p-0 h-auto ml-1">Learn how</Button>
+            <Button variant="link" size="sm" onClick={handleInstallClick} className="p-0 h-auto ml-1">Install now</Button>
           </AlertDescription>
         </Alert>
       )}
