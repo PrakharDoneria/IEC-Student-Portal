@@ -1,18 +1,26 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from './ui/button';
-import { LogOut, LayoutDashboard, PenSquare, FileDown } from 'lucide-react';
+import { LogOut, LayoutDashboard, PenSquare, FileDown, Menu } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
 
 const FACULTY_SECURITY_CODE = 'Attend@IEC@ieccollege.com';
+
+const navLinks = [
+    { href: '/faculty/dashboard', label: 'Dashboard', icon: <LayoutDashboard /> },
+    { href: '/faculty/mark-attendance', label: 'Mark Attendance', icon: <PenSquare /> },
+    { href: '/faculty/export-excel', label: 'Export Reports', icon: <FileDown /> }
+];
 
 export function FacultyHeader() {
   const router = useRouter();
   const pathname = usePathname();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
     const facultyAccessCode = localStorage.getItem('facultyAccessCode');
@@ -48,33 +56,68 @@ export function FacultyHeader() {
               className="object-contain"
               priority
             />
-            <span className="font-bold text-lg text-muted-foreground">Faculty Portal</span>
+            <span className="font-bold text-lg text-muted-foreground hidden md:inline">Faculty Portal</span>
           </Link>
           
-          <nav className="flex items-center gap-2">
-            <Button variant={pathname === '/faculty/dashboard' ? 'secondary' : 'ghost'} asChild>
-                <Link href="/faculty/dashboard" className="flex items-center gap-2">
-                    <LayoutDashboard />
-                    Dashboard
-                </Link>
-            </Button>
-             <Button variant={pathname === '/faculty/mark-attendance' ? 'secondary' : 'ghost'} asChild>
-                <Link href="/faculty/mark-attendance" className="flex items-center gap-2">
-                    <PenSquare />
-                    Mark Attendance
-                </Link>
-            </Button>
-            <Button variant={pathname === '/faculty/export-excel' ? 'secondary' : 'ghost'} asChild>
-                <Link href="/faculty/export-excel" className="flex items-center gap-2">
-                    <FileDown />
-                    Export Reports
-                </Link>
-            </Button>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-2">
+            {navLinks.map(link => (
+                 <Button key={link.href} variant={pathname === link.href ? 'secondary' : 'ghost'} asChild>
+                    <Link href={link.href} className="flex items-center gap-2">
+                        {link.icon}
+                        {link.label}
+                    </Link>
+                </Button>
+            ))}
             <Button variant="outline" onClick={handleLogout}>
                 <LogOut />
                 Logout
             </Button>
           </nav>
+          
+          {/* Mobile Navigation Trigger */}
+          <div className='md:hidden'>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <Menu />
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left">
+                    <SheetHeader>
+                        <SheetTitle className='flex items-center gap-2'>
+                             <Image
+                                src="/logo.png"
+                                alt="College Banner"
+                                width={120}
+                                height={24}
+                                className="object-contain"
+                                priority
+                            />
+                        </SheetTitle>
+                    </SheetHeader>
+                    <div className="flex flex-col h-full py-4">
+                        <nav className="flex flex-col gap-2 flex-1">
+                            {navLinks.map(link => (
+                                <SheetClose key={link.href} asChild>
+                                    <Button variant={pathname === link.href ? 'secondary' : 'ghost'} asChild className='justify-start'>
+                                        <Link href={link.href} className="flex items-center gap-4">
+                                            {link.icon}
+                                            {link.label}
+                                        </Link>
+                                    </Button>
+                                </SheetClose>
+                            ))}
+                        </nav>
+                        <Button variant="destructive" onClick={handleLogout}>
+                            <LogOut />
+                            Logout
+                        </Button>
+                    </div>
+                </SheetContent>
+            </Sheet>
+          </div>
+
         </div>
       </div>
     </header>

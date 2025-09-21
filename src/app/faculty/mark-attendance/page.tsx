@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import { fetchStudentsForClass, markAttendance } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Student, AttendanceMarking } from '@/lib/types';
@@ -202,7 +202,8 @@ export default function MarkAttendancePage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="border rounded-md">
+                {/* Desktop Table */}
+                <div className="border rounded-md hidden md:block">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -217,30 +218,19 @@ export default function MarkAttendancePage() {
                           <TableCell>{students[index].Roll_Number}</TableCell>
                           <TableCell>{students[index].Name}</TableCell>
                           <TableCell className="text-right">
-                            <FormField
+                             <Controller
                               control={form.control}
                               name={`students.${index}.status`}
-                              render={({ field }) => (
-                                <FormControl>
-                                  <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    className="flex justify-end gap-4"
-                                  >
-                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                      <FormControl>
-                                        <RadioGroupItem value="Present" id={`present-${index}`} />
-                                      </FormControl>
-                                      <FormLabel htmlFor={`present-${index}`} className={cn("font-normal cursor-pointer", field.value === 'Present' && 'text-accent')}>Present</FormLabel>
-                                    </FormItem>
-                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                      <FormControl>
-                                        <RadioGroupItem value="Absent" id={`absent-${index}`} />
-                                      </FormControl>
-                                      <FormLabel htmlFor={`absent-${index}`} className={cn("font-normal cursor-pointer", field.value === 'Absent' && 'text-destructive')}>Absent</FormLabel>
-                                    </FormItem>
-                                  </RadioGroup>
-                                </FormControl>
+                              render={({ field: { onChange, value } }) => (
+                                <div className="flex items-center justify-end gap-2">
+                                  <FormLabel htmlFor={`status-switch-${index}`} className={cn("font-normal cursor-pointer", value === 'Absent' && 'text-muted-foreground')}>Absent</FormLabel>
+                                  <Switch
+                                    id={`status-switch-${index}`}
+                                    checked={value === 'Present'}
+                                    onCheckedChange={(checked) => onChange(checked ? 'Present' : 'Absent')}
+                                  />
+                                  <FormLabel htmlFor={`status-switch-${index}`} className={cn("font-normal cursor-pointer", value === 'Present' && 'text-accent')}>Present</FormLabel>
+                                </div>
                               )}
                             />
                           </TableCell>
@@ -249,6 +239,37 @@ export default function MarkAttendancePage() {
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Mobile Card List */}
+                <div className="md:hidden space-y-4">
+                  {fields.map((field, index) => (
+                    <Card key={field.id} className="p-4">
+                       <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-semibold">{students[index].Name}</p>
+                            <p className="text-sm text-muted-foreground">{students[index].Roll_Number}</p>
+                          </div>
+                          <Controller
+                              control={form.control}
+                              name={`students.${index}.status`}
+                              render={({ field: { onChange, value } }) => (
+                                <div className="flex items-center gap-2">
+                                   <FormLabel htmlFor={`status-switch-mobile-${index}`} className={cn("font-normal cursor-pointer text-sm", value === 'Absent' && 'text-muted-foreground')}>Absent</FormLabel>
+                                  <Switch
+                                    id={`status-switch-mobile-${index}`}
+                                    checked={value === 'Present'}
+                                    onCheckedChange={(checked) => onChange(checked ? 'Present' : 'Absent')}
+                                  />
+                                  <FormLabel htmlFor={`status-switch-mobile-${index}`} className={cn("font-normal cursor-pointer text-sm", value === 'Present' && 'text-accent')}>Present</FormLabel>
+                                </div>
+                              )}
+                            />
+                       </div>
+                    </Card>
+                  ))}
+                </div>
+
+
                 <Button type="submit" disabled={submitting} className="w-full md:w-auto mt-6">
                   {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : 'Submit Attendance'}
                 </Button>
