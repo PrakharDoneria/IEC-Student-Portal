@@ -80,6 +80,7 @@ export default function LoginPage() {
             <Label htmlFor="roll-number">Roll Number</Label>
             <Input
               id="roll-number"
+              type="number"
               placeholder="e.g., 2400900100104"
               value={rollNumber}
               onChange={(e) => setRollNumber(e.target.value)}
