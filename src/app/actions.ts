@@ -1,3 +1,4 @@
+
 "use server";
 
 import {
@@ -19,11 +20,23 @@ export async function getStudentAttendanceSummary(rollNumber: string): Promise<{
     }
     
     const detailsData = await getStudentAttendanceDetails(rollNumber);
+    
+    const consolidatedRecords: { [date: string]: { Date: string; [key: string]: string } } = {};
 
-    // The summary endpoint doesn't return records, so we merge them from the details endpoint if available.
+    if (detailsData?.attendanceRecords) {
+        detailsData.attendanceRecords.forEach(record => {
+            const { Date, ...rest } = record;
+            if (consolidatedRecords[Date]) {
+                consolidatedRecords[Date] = { ...consolidatedRecords[Date], ...rest };
+            } else {
+                consolidatedRecords[Date] = record;
+            }
+        });
+    }
+
     const combinedData: StudentAttendanceSummary = {
         ...summaryData,
-        attendanceRecords: detailsData?.attendanceRecords ?? []
+        attendanceRecords: Object.values(consolidatedRecords)
     };
 
     return { success: true, data: combinedData };
@@ -72,3 +85,4 @@ export async function markAttendance(attendanceData: AttendanceMarking[]): Promi
     return { success: false, error: errorMessage };
   }
 }
+

@@ -1,3 +1,4 @@
+
 export type Student = {
   _id: string;
   Name: string;
@@ -40,7 +41,6 @@ export type StudentAttendanceSummary = {
       };
     };
   };
-  // Adding records for recent history display
   attendanceRecords: { Date: string; [key: string]: string }[];
 };
 
