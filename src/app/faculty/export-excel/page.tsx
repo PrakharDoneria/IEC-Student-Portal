@@ -16,13 +16,14 @@ import { useToast } from '@/hooks/use-toast';
 const API_BASE_URL = process.env.API_BASE_URL;
 
 export default function ExportExcelPage() {
-  const [classId, setClassId] = useState<string | null>(null);
+  const [year, setYear] = useState<string | null>(null);
+  const [section, setSection] = useState<string | null>(null);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
 
   const handleDownload = () => {
-    if (!classId) {
-      toast({ title: "Please select a class.", variant: "destructive" });
+    if (!year || !section) {
+      toast({ title: "Please select a year and section.", variant: "destructive" });
       return;
     }
     if (!date) {
@@ -34,6 +35,7 @@ export default function ExportExcelPage() {
       return;
     }
 
+    const classId = `${year}${section}`;
     const formattedDate = format(date, 'dd-MM-yyyy');
     const downloadUrl = `${API_BASE_URL}/faculty/dayExcel/${classId}?date=${formattedDate}`;
     
@@ -50,7 +52,7 @@ export default function ExportExcelPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="max-w-xl mx-auto">
+      <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Export Attendance Report</CardTitle>
           <CardDescription>
@@ -58,15 +60,29 @@ export default function ExportExcelPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div className="space-y-2">
-                <Label>Class</Label>
-                <Select onValueChange={setClassId}>
+                <Label>Year</Label>
+                <Select onValueChange={setYear}>
                     <SelectTrigger>
-                        <SelectValue placeholder="Select class" />
+                        <SelectValue placeholder="Select Year" />
                     </SelectTrigger>
                     <SelectContent>
-                        {['2A', '2B', '2C', '2D', '2E', '2F', '2G'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        <SelectItem value="1">1st Year</SelectItem>
+                        <SelectItem value="2">2nd Year</SelectItem>
+                        <SelectItem value="3">3rd Year</SelectItem>
+                        <SelectItem value="4">4th Year</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-2">
+                <Label>Section</Label>
+                <Select onValueChange={setSection}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select Section" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(c => <SelectItem key={c} value={c}>Section {c}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>
