@@ -30,12 +30,13 @@ export function AppHeader() {
   useEffect(() => {
     const rollNumber = localStorage.getItem('studentRollNumber');
     if (!rollNumber) {
-      if (pathname !== '/') {
+      // Allow access to login and register pages
+      if (pathname !== '/' && pathname !== '/register') {
         router.replace('/');
       }
       setStudentName(null);
     } else {
-       if (pathname === '/') {
+       if (pathname === '/' || pathname === '/register') {
           router.replace('/summary');
        }
       if (!studentName) {
@@ -58,8 +59,8 @@ export function AppHeader() {
     router.push('/');
   };
   
-  // Don't render header on the login page
-  if (pathname === '/') return null;
+  // Don't render header on the login or register page
+  if (pathname === '/' || pathname === '/register') return null;
 
 
   const navLinks: NavLink[] = [
